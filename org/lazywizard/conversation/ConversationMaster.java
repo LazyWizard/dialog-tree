@@ -15,9 +15,10 @@ import org.json.JSONObject;
 public class ConversationMaster
 {
     // TODO: Split into own mod and change mod id
-    private static final String MOD_ID = "lw_personal";
+    private static final String MOD_ID = "lw_dialog";
     private static final String CSV_PATH = "data/conv/conversations.csv";
     private static final Map<String, Conversation> conversations = new HashMap<>();
+    static Conversation currentConv = null;
 
     // Only throws Exceptions if CSV is malformed, not on errors in individual JSON files
     public static void reloadConversations() throws IOException, JSONException
@@ -69,6 +70,11 @@ public class ConversationMaster
 
         Global.getSector().getCampaignUI().showInteractionDialog(
                 new ConversationDialogPlugin(conversations.get(id), talkingTo), talkingTo);
+    }
+
+    public static boolean isInConversation()
+    {
+        return (currentConv != null);
     }
 
     private ConversationMaster()

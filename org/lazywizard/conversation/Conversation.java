@@ -16,7 +16,7 @@ import org.json.JSONObject;
 import org.lazywizard.conversation.VisibilityScript.Visibility;
 
 // TODO: Move all JSON parsing into single method for easier debugging
-// TODO: Better logging
+// TODO: Much more commenting, better logging
 class Conversation
 {
     private final Map<String, Node> nodes;
