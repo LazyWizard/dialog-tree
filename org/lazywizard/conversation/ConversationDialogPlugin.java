@@ -45,11 +45,13 @@ class ConversationDialogPlugin implements InteractionDialogPlugin
             visual.showPersonInfo(((CampaignFleetAPI) talkingTo).getCommander());
         }
 
+        ConversationMaster.currentConv = conv;
         goToNode(conv.getStartingNode());
     }
 
     private void endConversation()
     {
+        ConversationMaster.currentConv = null;
         dialog.dismiss();
     }
 
@@ -88,6 +90,8 @@ class ConversationDialogPlugin implements InteractionDialogPlugin
             case DISABLED:
                 options.addOption(response.getText(), response, response.getTooltip());
                 options.setEnabled(response, false);
+                break;
+            case HIDDEN:
                 break;
             default:
                 Global.getLogger(ConversationDialogPlugin.class).log(Level.ERROR,
