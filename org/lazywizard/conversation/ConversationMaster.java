@@ -7,48 +7,55 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import org.apache.log4j.Level;
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 
 public class ConversationMaster
 {
-    // TODO: Split into own mod and change mod id
     private static final String MOD_ID = "lw_dialog";
     private static final String CSV_PATH = "data/conv/conversations.csv";
     private static final Map<String, Conversation> conversations = new HashMap<>();
     static Conversation currentConv = null;
 
-    // Only throws Exceptions if CSV is malformed, not on errors in individual JSON files
-    public static void reloadConversations() throws IOException, JSONException
+    public static void reloadConversations()
     {
         conversations.clear();
-        JSONArray csv = Global.getSettings().getMergedSpreadsheetDataForMod(
-                "id", CSV_PATH, MOD_ID);
-        for (int x = 0; x < csv.length(); x++)
+
+        try
         {
-            JSONObject row = csv.getJSONObject(x);
-            String id = row.getString("id");
-            String filePath = row.getString("filePath");
-            try
+            JSONArray csv = Global.getSettings().getMergedSpreadsheetDataForMod(
+                    "id", CSV_PATH, MOD_ID);
+            for (int x = 0; x < csv.length(); x++)
             {
-                JSONObject rawData = Global.getSettings().loadJSON(filePath);
-                Conversation conv = JSONParser.parseConversation(rawData);
-                conversations.put(id, conv);
+                JSONObject row = csv.getJSONObject(x);
+                String id = row.getString("id");
+                String filePath = row.getString("filePath");
+                try
+                {
+                    JSONObject rawData = Global.getSettings().loadJSON(filePath);
+                    Conversation conv = JSONParser.parseConversation(rawData);
+                    conversations.put(id, conv);
+                }
+                catch (IOException ex)
+                {
+                    throw new RuntimeException("Unable to find conversation '"
+                            + id + "' at " + filePath, ex);
+                }
+                catch (JSONException ex)
+                {
+                    throw new RuntimeException("Unable to create conversation '"
+                            + id + "' at " + filePath, ex);
+                }
             }
-            catch (IOException ex)
-            {
-                Global.getLogger(ConversationMaster.class).log(Level.ERROR,
-                        "Unable to find covnersation '" + id
-                        + "' at " + filePath, ex);
-            }
-            catch (JSONException ex)
-            {
-                Global.getLogger(ConversationMaster.class).log(Level.ERROR,
-                        "Unable to create conversation '" + id
-                        + "' at " + filePath, ex);
-            }
+        }
+        catch (IOException ex)
+        {
+            throw new RuntimeException("Failed to find conversation list!", ex);
+        }
+        catch (JSONException ex)
+        {
+            throw new RuntimeException("Malformed conversations.csv!", ex);
         }
     }
 
@@ -69,6 +76,11 @@ public class ConversationMaster
 
     public static void showConversation(Conversation conv, SectorEntityToken talkingTo)
     {
+        if (conv.getStartingNode() == null)
+        {
+            throw new RuntimeException("No startingNode found!");
+        }
+
         Global.getSector().getCampaignUI().showInteractionDialog(
                 new ConversationDialogPlugin(conv, talkingTo), talkingTo);
     }

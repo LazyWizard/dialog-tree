@@ -4,7 +4,6 @@ import com.fs.starfarer.api.Global;
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
-import org.apache.log4j.Level;
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
@@ -13,18 +12,18 @@ import org.lazywizard.conversation.Conversation.Response;
 
 class JSONParser
 {
-    static Conversation parseConversation(JSONObject rawData) throws JSONException
+    static Conversation parseConversation(JSONObject data) throws JSONException
     {
         Conversation conv = new Conversation();
-        String startNode = rawData.getString("startingNode");
-        JSONObject nodeData = rawData.getJSONObject("nodes");
-        for (Iterator keys = nodeData.keys(); keys.hasNext();)
+        String startingNode = data.getString("startingNode");
+        JSONObject nodes = data.getJSONObject("nodes");
+        for (Iterator keys = nodes.keys(); keys.hasNext();)
         {
             String nodeId = (String) keys.next();
-            JSONObject data = nodeData.getJSONObject(nodeId);
+            JSONObject nodeData = nodes.getJSONObject(nodeId);
 
             // Create the node (and by extension, the response list)
-            Node node = parseNode(data);
+            Node node = parseNode(nodeData);
 
             // Prevent trapping the player in an unfinished node
             if (node.getResponses().isEmpty())
@@ -36,7 +35,7 @@ class JSONParser
             conv.addNode(nodeId, node);
 
             // Check if this is the node that we should open the conversation with
-            if (startNode.equals(nodeId))
+            if (startingNode.equals(nodeId))
             {
                 conv.setStartingNode(node);
             }
@@ -55,6 +54,7 @@ class JSONParser
     {
         String text = data.getString("text");
         List<Response> responses = new ArrayList<>();
+
         JSONArray rData = data.getJSONArray("responses");
         for (int x = 0; x < rData.length(); x++)
         {
@@ -71,6 +71,7 @@ class JSONParser
         String leadsTo = data.optString("leadsTo", null);
         String tooltip = data.optString("tooltip", null);
 
+        // Try to create the 'on chosen' effect script if an entry for it is present
         OnChosenScript onChosen = null;
         String scriptPath = data.optString("onChosenScript", null);
         if (scriptPath != null)
@@ -85,13 +86,14 @@ class JSONParser
             catch (ClassNotFoundException | ClassCastException |
                     IllegalAccessException | InstantiationException ex)
             {
-                Global.getLogger(JSONParser.class).log(Level.ERROR,
-                        "Failed to create OnChosenScript: " + scriptPath, ex);
+                throw new RuntimeException("Failed to create OnChosenScript: "
+                        + scriptPath, ex);
             }
 
             onChosen = tmp;
         }
 
+        // Try to create the visibility script if an entry for it is present
         VisibilityScript visibility = null;
         scriptPath = data.optString("visibilityScript", null);
         if (scriptPath != null)
@@ -106,8 +108,8 @@ class JSONParser
             catch (ClassNotFoundException | ClassCastException |
                     IllegalAccessException | InstantiationException ex)
             {
-                Global.getLogger(JSONParser.class).log(Level.ERROR,
-                        "Failed to create VisibilityScript: " + scriptPath, ex);
+                throw new RuntimeException("Failed to create VisibilityScript: "
+                        + scriptPath, ex);
             }
 
             visibility = tmp;

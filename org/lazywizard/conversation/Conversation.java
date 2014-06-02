@@ -1,16 +1,14 @@
 package org.lazywizard.conversation;
 
 import com.fs.starfarer.api.Global;
-import com.fs.starfarer.api.campaign.InteractionDialogAPI;
 import com.fs.starfarer.api.campaign.SectorEntityToken;
 import java.util.ArrayList;
 import java.util.HashMap;
-import java.util.HashSet;
+import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import org.apache.log4j.Level;
-import org.lazywizard.conversation.VisibilityScript.Visibility;
 
 // TODO: Much more commenting, better logging
 public final class Conversation
@@ -79,7 +77,7 @@ public final class Conversation
         public Node(String text, List<Response> responses)
         {
             this.text = text;
-            this.responses = new HashSet<>();
+            this.responses = new LinkedHashSet<>();
 
             for (Response tmp : responses)
             {
@@ -128,6 +126,13 @@ public final class Conversation
         private final VisibilityScript visibility;
         private Node parentNode = null;
 
+        public enum Visibility
+        {
+            HIDDEN,
+            DISABLED,
+            VISIBLE
+        }
+
         public Response(String text, String leadsTo, String tooltip,
                 OnChosenScript onChosen, VisibilityScript visibility)
         {
@@ -148,7 +153,7 @@ public final class Conversation
             this.parentNode = parentNode;
         }
 
-        void onChosen(SectorEntityToken talkingTo, InteractionDialogAPI dialog)
+        void onChosen(SectorEntityToken talkingTo, ConversationDialog dialog)
         {
             Global.getLogger(Response.class).log(Level.DEBUG,
                     "Chose response: \"" + text + "\"\nLeads to: " + leadsTo);
@@ -176,7 +181,7 @@ public final class Conversation
                 return visibility.getVisibility();
             }
 
-            return VisibilityScript.Visibility.VISIBLE;
+            return Visibility.VISIBLE;
         }
 
         public Node getParentNode()
@@ -184,7 +189,7 @@ public final class Conversation
             return parentNode;
         }
 
-        public String getNodeLedTo()
+        public String getDestination()
         {
             return leadsTo;
         }

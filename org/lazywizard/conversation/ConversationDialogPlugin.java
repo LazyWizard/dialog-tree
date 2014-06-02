@@ -14,7 +14,7 @@ import org.apache.log4j.Level;
 import org.lazywizard.conversation.Conversation.Node;
 import org.lazywizard.conversation.Conversation.Response;
 
-class ConversationDialogPlugin implements InteractionDialogPlugin
+class ConversationDialogPlugin implements InteractionDialogPlugin, ConversationDialog
 {
     private final Conversation conv;
     private final SectorEntityToken talkingTo;
@@ -49,10 +49,37 @@ class ConversationDialogPlugin implements InteractionDialogPlugin
         goToNode(conv.getStartingNode());
     }
 
-    private void endConversation()
+    @Override
+    public void endConversation()
     {
         ConversationMaster.currentConv = null;
         dialog.dismiss();
+    }
+
+    @Override
+    public void goToNode(Node node)
+    {
+        // Conversation ends when the response chosen doesn't lead to another node
+        if (node == null)
+        {
+            endConversation();
+            return;
+        }
+
+        currentNode = node;
+        text.addParagraph(node.getText());
+        options.clearOptions();
+
+        for (Response response : node.getResponses())
+        {
+            checkAddResponse(response);
+        }
+    }
+
+    @Override
+    public InteractionDialogAPI getInteractionDialog()
+    {
+        return dialog;
     }
 
     private void checkAddResponse(Response response)
@@ -99,32 +126,13 @@ class ConversationDialogPlugin implements InteractionDialogPlugin
         }
     }
 
-    private void goToNode(Node node)
-    {
-        // Conversation ends when the response chosen doesn't lead to another node
-        if (node == null)
-        {
-            endConversation();
-            return;
-        }
-
-        currentNode = node;
-        text.addParagraph(node.getText());
-        options.clearOptions();
-
-        for (Response response : node.getResponses())
-        {
-            checkAddResponse(response);
-        }
-    }
-
     @Override
     public void optionSelected(String optionText, Object optionData)
     {
         Response response = (Response) optionData;
         text.addParagraph(response.getText(), Color.CYAN);
-        response.onChosen(talkingTo, dialog);
-        goToNode(conv.getNodes().get(response.getNodeLedTo()));
+        response.onChosen(talkingTo, this);
+        goToNode(conv.getNodes().get(response.getDestination()));
     }
 
     @Override
