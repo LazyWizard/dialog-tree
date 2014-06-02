@@ -3,201 +3,190 @@ package org.lazywizard.conversation;
 import com.fs.starfarer.api.Global;
 import com.fs.starfarer.api.campaign.InteractionDialogAPI;
 import com.fs.starfarer.api.campaign.SectorEntityToken;
-import java.io.IOException;
 import java.util.ArrayList;
 import java.util.HashMap;
-import java.util.Iterator;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import org.apache.log4j.Level;
-import org.json.JSONArray;
-import org.json.JSONException;
-import org.json.JSONObject;
 import org.lazywizard.conversation.VisibilityScript.Visibility;
 
-// TODO: Move all JSON parsing into single method for easier debugging
 // TODO: Much more commenting, better logging
-class Conversation
+public final class Conversation
 {
     private final Map<String, Node> nodes;
     private Node startingNode;
 
-    Conversation(String filePath) throws JSONException, IOException
+    public Conversation()
     {
-        JSONObject rawData = Global.getSettings().loadJSON(filePath);
-        String startNode = rawData.getString("startingNode");
-
         nodes = new HashMap<>();
-        JSONObject nodeData = rawData.getJSONObject("nodes");
-        for (Iterator keys = nodeData.keys(); keys.hasNext();)
-        {
-            String id = (String) keys.next();
-            JSONObject data = nodeData.getJSONObject(id);
-            Node node = new Node(id, data);
-
-            if (node.getResponses().isEmpty())
-            {
-                continue;
-            }
-
-            nodes.put(id, node);
-
-            if (startNode.equals(id))
-            {
-                startingNode = node;
-            }
-        }
-
-        if (startingNode == null)
-        {
-            throw new RuntimeException("No startingNode found in " + filePath);
-        }
     }
 
-    Map<String, Node> getNodes()
+    public void addNode(String id, Node node)
     {
-        return nodes;
+        if (nodes.containsKey(id))
+        {
+            nodes.put(id, node).setParentConversation(null);
+        }
+        else
+        {
+            nodes.put(id, node);
+        }
+
+        node.setParentConversation(this);
     }
 
-    Node getStartingNode()
+    public void removeNode(String id)
+    {
+        if (nodes.containsKey(id))
+        {
+            nodes.remove(id).setParentConversation(null);
+        }
+    }
+
+    public boolean hasNode(String id)
+    {
+        return nodes.containsKey(id);
+    }
+
+    public Node getNode(String id)
+    {
+        return nodes.get(id);
+    }
+
+    public Map<String, Node> getNodes()
+    {
+        return new HashMap<>(nodes);
+    }
+
+    public Node getStartingNode()
     {
         return startingNode;
     }
 
-    class Node
+    public void setStartingNode(Node startingNode)
+    {
+        this.startingNode = startingNode;
+    }
+
+    public static final class Node
     {
         private final String text;
-        private final List<Response> responses;
+        private final Set<Response> responses;
+        private Conversation parentConv;
 
-        Node(String nodeId, JSONObject data) throws JSONException
+        public Node(String text, List<Response> responses)
         {
-            text = data.getString("text");
-            responses = new ArrayList<>();
+            this.text = text;
+            this.responses = new HashSet<>();
 
-            JSONArray rData = data.getJSONArray("responses");
-            for (int x = 0; x < rData.length(); x++)
+            for (Response tmp : responses)
             {
-                responses.add(new Response(rData.getJSONObject(x)));
+                addResponse(tmp);
             }
         }
 
-        String getText()
+        private void setParentConversation(Conversation parentConv)
+        {
+            this.parentConv = parentConv;
+        }
+
+        public String getText()
         {
             return text;
         }
 
-        List<Response> getResponses()
+        public void addResponse(Response response)
         {
-            return responses;
+            responses.add(response);
+            response.setParentNode(this);
         }
 
-        Conversation getConversation()
+        public void removeResponse(Response response)
         {
-            return Conversation.this;
+            responses.remove(response);
+            response.setParentNode(null);
         }
 
-        class Response
+        public List<Response> getResponses()
         {
-            private final String text, tooltip;
-            private final String leadsTo;
-            private final OnChosenScript onChosen;
-            private final VisibilityScript visibility;
+            return new ArrayList<>(responses);
+        }
 
-            Response(JSONObject data) throws JSONException
+        public Conversation getConversation()
+        {
+            return parentConv;
+        }
+    }
+
+    public static final class Response
+    {
+        private final String text, tooltip;
+        private final String leadsTo;
+        private final OnChosenScript onChosen;
+        private final VisibilityScript visibility;
+        private Node parentNode = null;
+
+        public Response(String text, String leadsTo, String tooltip,
+                OnChosenScript onChosen, VisibilityScript visibility)
+        {
+            this.text = text;
+            this.leadsTo = leadsTo;
+            this.tooltip = tooltip;
+            this.onChosen = onChosen;
+            this.visibility = visibility;
+        }
+
+        public Response(String text, String leadsTo)
+        {
+            this(text, leadsTo, null, null, null);
+        }
+
+        private void setParentNode(Node parentNode)
+        {
+            this.parentNode = parentNode;
+        }
+
+        void onChosen(SectorEntityToken talkingTo, InteractionDialogAPI dialog)
+        {
+            Global.getLogger(Response.class).log(Level.DEBUG,
+                    "Chose response: \"" + text + "\"\nLeads to: " + leadsTo);
+
+            if (onChosen != null)
             {
-                text = data.getString("text");
-                leadsTo = data.optString("leadsTo", null);
-                tooltip = data.optString("tooltip", null);
+                onChosen.onChosen(talkingTo, dialog);
+            }
+        }
 
-                String scriptPath = data.optString("onChosenScript", null);
-                if (scriptPath == null)
-                {
-                    onChosen = null;
-                }
-                else
-                {
-                    OnChosenScript tmp = null;
+        public String getText()
+        {
+            return text;
+        }
 
-                    try
-                    {
-                        tmp = (OnChosenScript) Global.getSettings()
-                                .getScriptClassLoader().loadClass(scriptPath).newInstance();
-                    }
-                    catch (ClassNotFoundException | ClassCastException |
-                            IllegalAccessException | InstantiationException ex)
-                    {
-                        Global.getLogger(Response.class).log(Level.ERROR,
-                                "Failed to create OnChosenScript: " + scriptPath, ex);
-                    }
+        public String getTooltip()
+        {
+            return tooltip;
+        }
 
-                    onChosen = tmp;
-                }
-
-                scriptPath = data.optString("visibilityScript", null);
-                if (scriptPath == null)
-                {
-                    visibility = null;
-                }
-                else
-                {
-                    VisibilityScript tmp = null;
-
-                    try
-                    {
-                        tmp = (VisibilityScript) Global.getSettings()
-                                .getScriptClassLoader().loadClass(scriptPath).newInstance();
-                    }
-                    catch (ClassNotFoundException | ClassCastException |
-                            IllegalAccessException | InstantiationException ex)
-                    {
-                        Global.getLogger(Response.class).log(Level.ERROR,
-                                "Failed to create VisibilityScript: " + scriptPath, ex);
-                    }
-
-                    visibility = tmp;
-                }
+        public Visibility getVisibility()
+        {
+            if (visibility != null)
+            {
+                return visibility.getVisibility();
             }
 
-            void onChosen(SectorEntityToken talkingTo, InteractionDialogAPI dialog)
-            {
-                Global.getLogger(Response.class).log(Level.DEBUG,
-                        "Chose response: \"" + text + "\"\nLeads to: " + leadsTo);
+            return VisibilityScript.Visibility.VISIBLE;
+        }
 
-                if (onChosen != null)
-                {
-                    onChosen.onChosen(talkingTo, dialog);
-                }
-            }
+        public Node getParentNode()
+        {
+            return parentNode;
+        }
 
-            String getText()
-            {
-                return text;
-            }
-
-            String getTooltip()
-            {
-                return tooltip;
-            }
-
-            Visibility getVisibility()
-            {
-                if (visibility != null)
-                {
-                    return visibility.getVisibility();
-                }
-
-                return VisibilityScript.Visibility.VISIBLE;
-            }
-
-            Node getNode()
-            {
-                return Conversation.Node.this;
-            }
-
-            String getNodeLedTo()
-            {
-                return leadsTo;
-            }
+        public String getNodeLedTo()
+        {
+            return leadsTo;
         }
     }
 }
