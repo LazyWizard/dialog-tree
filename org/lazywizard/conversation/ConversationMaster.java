@@ -33,7 +33,8 @@ public class ConversationMaster
             String filePath = row.getString("filePath");
             try
             {
-                Conversation conv = new Conversation(filePath);
+                JSONObject rawData = Global.getSettings().loadJSON(filePath);
+                Conversation conv = JSONParser.parseConversation(rawData);
                 conversations.put(id, conv);
             }
             catch (IOException ex)
@@ -61,15 +62,15 @@ public class ConversationMaster
         return conversations.containsKey(id);
     }
 
-    public static void showConversation(String id, SectorEntityToken talkingTo)
+    public static Conversation getConversation(String id)
     {
-        if (!conversations.containsKey(id))
-        {
-            throw new RuntimeException("Conversation \"" + id + "\" not found!");
-        }
+        return conversations.get(id);
+    }
 
+    public static void showConversation(Conversation conv, SectorEntityToken talkingTo)
+    {
         Global.getSector().getCampaignUI().showInteractionDialog(
-                new ConversationDialogPlugin(conversations.get(id), talkingTo), talkingTo);
+                new ConversationDialogPlugin(conv, talkingTo), talkingTo);
     }
 
     public static boolean isInConversation()

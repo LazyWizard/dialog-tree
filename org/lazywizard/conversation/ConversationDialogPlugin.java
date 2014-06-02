@@ -12,7 +12,7 @@ import com.fs.starfarer.api.combat.EngagementResultAPI;
 import java.awt.Color;
 import org.apache.log4j.Level;
 import org.lazywizard.conversation.Conversation.Node;
-import org.lazywizard.conversation.Conversation.Node.Response;
+import org.lazywizard.conversation.Conversation.Response;
 
 class ConversationDialogPlugin implements InteractionDialogPlugin
 {
