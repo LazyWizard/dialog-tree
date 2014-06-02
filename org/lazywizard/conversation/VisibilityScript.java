@@ -1,13 +1,8 @@
 package org.lazywizard.conversation;
 
+import org.lazywizard.conversation.Conversation.Response.Visibility;
+
 public interface VisibilityScript
 {
-    public enum Visibility
-    {
-        HIDDEN,
-        DISABLED,
-        VISIBLE
-    }
-
     public Visibility getVisibility();
 }
