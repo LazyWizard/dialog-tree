@@ -7,6 +7,7 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import org.apache.log4j.Level;
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
@@ -79,6 +80,15 @@ public class ConversationMaster
         if (conv.getStartingNode() == null)
         {
             throw new RuntimeException("No startingNode found!");
+        }
+
+        try
+        {
+            System.out.println(JSONParser.toJSON(conv).toString(3));
+        }
+        catch (JSONException ex)
+        {
+            Global.getLogger(ConversationMaster.class).log(Level.ERROR, ex);
         }
 
         Global.getSector().getCampaignUI().showInteractionDialog(

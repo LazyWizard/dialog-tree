@@ -184,6 +184,16 @@ public final class Conversation
             return Visibility.VISIBLE;
         }
 
+        OnChosenScript getOnChosenScript()
+        {
+            return onChosen;
+        }
+
+        VisibilityScript getVisibilityScript()
+        {
+            return visibility;
+        }
+
         public Node getParentNode()
         {
             return parentNode;
