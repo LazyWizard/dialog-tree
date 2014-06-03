@@ -4,6 +4,7 @@ import com.fs.starfarer.api.Global;
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
+import java.util.Map;
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
@@ -12,6 +13,25 @@ import org.lazywizard.conversation.Conversation.Response;
 
 class JSONParser
 {
+    static JSONObject toJSON(Conversation conv) throws JSONException
+    {
+        JSONObject json = new JSONObject();
+
+        JSONObject nodes = new JSONObject();
+        for (Map.Entry<String, Node> tmp : conv.getNodes().entrySet())
+        {
+            nodes.put(tmp.getKey(), toJSON(tmp.getValue()));
+
+            if (conv.getStartingNode() == tmp.getValue())
+            {
+                json.put("startingNode", tmp.getKey());
+            }
+        }
+
+        json.put("nodes", nodes);
+        return json;
+    }
+
     static Conversation parseConversation(JSONObject data) throws JSONException
     {
         Conversation conv = new Conversation();
@@ -50,6 +70,19 @@ class JSONParser
         return conv;
     }
 
+    static JSONObject toJSON(Node node) throws JSONException
+    {
+        JSONObject json = new JSONObject();
+        json.put("text", node.getText());
+
+        for (Response tmp : node.getResponses())
+        {
+            json.append("responses", toJSON(tmp));
+        }
+
+        return json;
+    }
+
     static Node parseNode(JSONObject data) throws JSONException
     {
         String text = data.getString("text");
@@ -63,6 +96,28 @@ class JSONParser
         }
 
         return new Node(text, responses);
+    }
+
+    static JSONObject toJSON(Response response) throws JSONException
+    {
+        JSONObject json = new JSONObject();
+        json.put("text", response.getText());
+        json.putOpt("tooltip", response.getTooltip());
+        json.putOpt("leadsTo", response.getDestination());
+
+        if (response.getVisibilityScript() != null)
+        {
+            json.put("visibilityScript", response.getVisibilityScript()
+                    .getClass().getCanonicalName());
+        }
+
+        if (response.getOnChosenScript() != null)
+        {
+            json.put("onChosenScript", response.getOnChosenScript()
+                    .getClass().getCanonicalName());
+        }
+
+        return json;
     }
 
     static Response parseResponse(JSONObject data) throws JSONException
