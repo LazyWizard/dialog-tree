@@ -9,5 +9,7 @@ public interface ConversationDialog
 
     public void goToNode(Node node);
 
+    public void reloadCurrentNode();
+
     public void endConversation();
 }

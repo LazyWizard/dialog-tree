@@ -11,6 +11,7 @@ import org.json.JSONObject;
 import org.lazywizard.conversation.Conversation.Node;
 import org.lazywizard.conversation.Conversation.Response;
 
+// TODO: Write raw JSON text ourselves if we want to preserve key-pair ordering
 class JSONParser
 {
     static JSONObject toJSON(Conversation conv) throws JSONException
