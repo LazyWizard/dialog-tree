@@ -68,9 +68,14 @@ class ConversationDialogPlugin implements InteractionDialogPlugin, ConversationD
 
         currentNode = node;
         text.addParagraph(node.getText());
-        options.clearOptions();
+        reloadCurrentNode();
+    }
 
-        for (Response response : node.getResponses())
+    @Override
+    public void reloadCurrentNode()
+    {
+        options.clearOptions();
+        for (Response response : currentNode.getResponses())
         {
             checkAddResponse(response);
         }

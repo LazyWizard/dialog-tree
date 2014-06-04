@@ -9,9 +9,11 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import org.apache.log4j.Level;
+import org.json.JSONException;
+import org.json.JSONString;
 
 // TODO: Much more commenting, better logging
-public final class Conversation
+public final class Conversation implements JSONString
 {
     private final Map<String, Node> nodes;
     private Node startingNode;
@@ -68,7 +70,20 @@ public final class Conversation
         this.startingNode = startingNode;
     }
 
-    public static final class Node
+    @Override
+    public String toJSONString()
+    {
+        try
+        {
+            return JSONParser.toJSON(this).toString(3);
+        }
+        catch (JSONException ex)
+        {
+            throw new RuntimeException("Failed to JSONify conversation!", ex);
+        }
+    }
+
+    public static final class Node implements JSONString
     {
         private final String text;
         private final Set<Response> responses;
@@ -116,9 +131,22 @@ public final class Conversation
         {
             return parentConv;
         }
+
+        @Override
+        public String toJSONString()
+        {
+            try
+            {
+                return JSONParser.toJSON(this).toString(3);
+            }
+            catch (JSONException ex)
+            {
+                throw new RuntimeException("Failed to JSONify node!", ex);
+            }
+        }
     }
 
-    public static final class Response
+    public static final class Response implements JSONString
     {
         private final String text, tooltip;
         private final String leadsTo;
@@ -202,6 +230,19 @@ public final class Conversation
         public String getDestination()
         {
             return leadsTo;
+        }
+
+        @Override
+        public String toJSONString()
+        {
+            try
+            {
+                return JSONParser.toJSON(this).toString(3);
+            }
+            catch (JSONException ex)
+            {
+                throw new RuntimeException("Failed to JSONify response!", ex);
+            }
         }
     }
 }

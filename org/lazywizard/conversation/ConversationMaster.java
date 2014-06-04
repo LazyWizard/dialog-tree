@@ -7,7 +7,6 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import org.apache.log4j.Level;
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
@@ -82,14 +81,8 @@ public class ConversationMaster
             throw new RuntimeException("No startingNode found!");
         }
 
-        try
-        {
-            System.out.println(JSONParser.toJSON(conv).toString(3));
-        }
-        catch (JSONException ex)
-        {
-            Global.getLogger(ConversationMaster.class).log(Level.ERROR, ex);
-        }
+        // DEBUG
+        System.out.println(conv.toJSONString());
 
         Global.getSector().getCampaignUI().showInteractionDialog(
                 new ConversationDialogPlugin(conv, talkingTo), talkingTo);
@@ -98,6 +91,11 @@ public class ConversationMaster
     public static boolean isInConversation()
     {
         return (currentConv != null);
+    }
+
+    public static Conversation getCurrentConversation()
+    {
+        return currentConv;
     }
 
     private ConversationMaster()
