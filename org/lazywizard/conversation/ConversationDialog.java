@@ -12,6 +12,8 @@ public interface ConversationDialog
 
     public SectorEntityToken getConversationPartner();
 
+    public Conversation getConversation();
+
     public void goToNode(Node node);
 
     public void reloadCurrentNode();
