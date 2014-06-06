@@ -33,7 +33,7 @@ public class TestConversation implements BaseCommand
             return CommandResult.SUCCESS;
         }
 
-        final String convId = (args.isEmpty() ? "testConv" : args);
+        String convId = (args.isEmpty() ? "testConv" : args);
         if (!ConversationMaster.hasConversation(convId))
         {
             Console.showMessage("No conversation with ID \"" + convId + "\" loaded!");
@@ -41,34 +41,42 @@ public class TestConversation implements BaseCommand
         }
 
         Console.showMessage("Showing conversation " + convId + "...");
-        Global.getSector().addScript(new EveryFrameScript()
-        {
-            private boolean isDone = false;
-
-            @Override
-            public boolean isDone()
-            {
-                return isDone;
-            }
-
-            @Override
-            public boolean runWhilePaused()
-            {
-                return false;
-            }
-
-            @Override
-            public void advance(float amount)
-            {
-                if (!isDone)
-                {
-                    isDone = true;
-                    Conversation conv = ConversationMaster.getConversation(convId);
-                    ConversationMaster.showConversation(conv,
-                            Global.getSector().getPlayerFleet());
-                }
-            }
-        });
+        Global.getSector().addScript(new ShowConvLaterScript(convId));
         return CommandResult.SUCCESS;
+    }
+
+    private static class ShowConvLaterScript implements EveryFrameScript
+    {
+        private final String convId;
+        private boolean isDone = false;
+
+        private ShowConvLaterScript(String convId)
+        {
+            this.convId = convId;
+        }
+
+        @Override
+        public boolean isDone()
+        {
+            return isDone;
+        }
+
+        @Override
+        public boolean runWhilePaused()
+        {
+            return false;
+        }
+
+        @Override
+        public void advance(float amount)
+        {
+            if (!isDone)
+            {
+                isDone = true;
+                Conversation conv = ConversationMaster.getConversation(convId);
+                ConversationMaster.showConversation(conv,
+                        Global.getSector().getPlayerFleet());
+            }
+        }
     }
 }

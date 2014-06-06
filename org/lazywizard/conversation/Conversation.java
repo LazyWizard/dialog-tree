@@ -1,7 +1,5 @@
 package org.lazywizard.conversation;
 
-import org.lazywizard.conversation.scripts.ResponseScript;
-import org.lazywizard.conversation.scripts.VisibilityScript;
 import com.fs.starfarer.api.Global;
 import com.fs.starfarer.api.campaign.SectorEntityToken;
 import java.util.ArrayList;
@@ -13,8 +11,11 @@ import java.util.Set;
 import org.apache.log4j.Level;
 import org.json.JSONException;
 import org.json.JSONString;
+import org.lazywizard.conversation.scripts.ResponseScript;
+import org.lazywizard.conversation.scripts.VisibilityScript;
 
 // TODO: Much more commenting, better logging
+// TODO: Hook into ConversationDialogPlugin's advance() method (last missing feature)
 public final class Conversation implements JSONString
 {
     private final Map<String, Node> nodes;
@@ -228,14 +229,15 @@ public final class Conversation implements JSONString
             }
         }
 
-        void onMousedOver(SectorEntityToken talkingTo, ConversationDialog dialog)
+        void onMousedOver(SectorEntityToken talkingTo,
+                boolean wasLastMousedOver, ConversationDialog dialog)
         {
             Global.getLogger(Response.class).log(Level.DEBUG,
                     "Moused over response: \"" + text + "\"\nLeads to: " + leadsTo);
 
             if (responseScript != null)
             {
-                responseScript.onMousedOver(talkingTo, dialog);
+                responseScript.onMousedOver(talkingTo, wasLastMousedOver, dialog);
             }
         }
 

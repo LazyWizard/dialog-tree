@@ -26,6 +26,7 @@ class ConversationDialogPlugin implements InteractionDialogPlugin, ConversationD
     private OptionPanelAPI options;
     private VisualPanelAPI visual;
     private Node currentNode;
+    private Response lastMousedOver;
     private OnBattleEndScript endBattleScript;
     private BattleCreationContext context;
 
@@ -54,14 +55,14 @@ class ConversationDialogPlugin implements InteractionDialogPlugin, ConversationD
             visual.showPersonInfo(((CampaignFleetAPI) talkingTo).getCommander());
         }
 
-        ConversationMaster.currentConv = conv;
+        ConversationMaster.setCurrentConversation(conv);
         goToNode(conv.getStartingNode());
     }
 
     @Override
     public void endConversation()
     {
-        ConversationMaster.currentConv = null;
+        ConversationMaster.setCurrentConversation(null);
         dialog.dismiss();
     }
 
@@ -167,16 +168,18 @@ class ConversationDialogPlugin implements InteractionDialogPlugin, ConversationD
     public void optionMousedOver(String optionText, Object optionData)
     {
         Response response = (Response) optionData;
+        lastMousedOver = response;
 
         if (response != null)
         {
-            response.onMousedOver(talkingTo, this);
+            response.onMousedOver(talkingTo, (response == lastMousedOver), this);
         }
     }
 
     @Override
     public void advance(float amount)
     {
+        // TODO: add scripts for conversation and node that are hooked into here
     }
 
     @Override
