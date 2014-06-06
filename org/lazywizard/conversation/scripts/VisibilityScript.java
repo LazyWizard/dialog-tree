@@ -1,4 +1,4 @@
-package org.lazywizard.conversation;
+package org.lazywizard.conversation.scripts;
 
 import org.lazywizard.conversation.Conversation.Response.Visibility;
 
