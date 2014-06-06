@@ -91,12 +91,20 @@ class ConversationDialogPlugin implements InteractionDialogPlugin, ConversationD
         return dialog;
     }
 
+    @Override
+    public SectorEntityToken getConversationPartner()
+    {
+        return talkingTo;
+    }
+
     private void checkAddResponse(Response response)
     {
+        Response.Visibility visibility = response.getVisibility(talkingTo, this);
+
         // Dev mode = on, allow player to choose even disabled/hidden options
         if (devMode)
         {
-            switch (response.getVisibility())
+            switch (visibility)
             {
                 case VISIBLE:
                     options.addOption(response.getText(), response, response.getTooltip());
@@ -111,14 +119,14 @@ class ConversationDialogPlugin implements InteractionDialogPlugin, ConversationD
                     break;
                 default:
                     Global.getLogger(ConversationDialogPlugin.class).log(Level.ERROR,
-                            "Unsupported status: " + response.getVisibility().name());
+                            "Unsupported status: " + visibility.name());
             }
 
             return;
         }
 
         // Dev mode = off, respect visibility status
-        switch (response.getVisibility())
+        switch (visibility)
         {
             case VISIBLE:
                 options.addOption(response.getText(), response, response.getTooltip());
@@ -131,7 +139,7 @@ class ConversationDialogPlugin implements InteractionDialogPlugin, ConversationD
                 break;
             default:
                 Global.getLogger(ConversationDialogPlugin.class).log(Level.ERROR,
-                        "Unsupported status: " + response.getVisibility().name());
+                        "Unsupported status: " + visibility.name());
         }
     }
 

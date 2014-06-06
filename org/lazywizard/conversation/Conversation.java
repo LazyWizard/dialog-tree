@@ -238,11 +238,11 @@ public final class Conversation implements JSONString
             return tooltip;
         }
 
-        public Visibility getVisibility()
+        public Visibility getVisibility(SectorEntityToken talkingTo, ConversationDialog dialog)
         {
             if (visibility != null)
             {
-                return visibility.getVisibility();
+                return visibility.getVisibility(talkingTo, dialog);
             }
 
             return Visibility.VISIBLE;
