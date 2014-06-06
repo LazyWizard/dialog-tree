@@ -1,5 +1,7 @@
 package org.lazywizard.conversation;
 
+import org.lazywizard.conversation.scripts.VisibilityScript;
+import org.lazywizard.conversation.scripts.OnChosenScript;
 import com.fs.starfarer.api.Global;
 import com.fs.starfarer.api.campaign.SectorEntityToken;
 import java.util.ArrayList;
@@ -68,6 +70,40 @@ public final class Conversation implements JSONString
     public void setStartingNode(Node startingNode)
     {
         this.startingNode = startingNode;
+    }
+
+    public boolean isValid()
+    {
+        boolean isValid = true;
+
+        if (startingNode == null || !nodes.containsValue(startingNode))
+        {
+            Global.getLogger(Conversation.class).log(Level.ERROR,
+                    "Starting node not found!");
+            isValid = false;
+        }
+
+        for (Node node : nodes.values())
+        {
+            for (Response response : node.responses)
+            {
+                String destination = response.getDestination();
+
+                if (destination == null)
+                {
+                    continue;
+                }
+
+                if (!nodes.containsKey(destination))
+                {
+                    Global.getLogger(Conversation.class).log(Level.ERROR,
+                            "Invalid response destination: " + destination);
+                    isValid = false;
+                }
+            }
+        }
+
+        return isValid;
     }
 
     @Override

@@ -8,11 +8,13 @@ import com.fs.starfarer.api.campaign.OptionPanelAPI;
 import com.fs.starfarer.api.campaign.SectorEntityToken;
 import com.fs.starfarer.api.campaign.TextPanelAPI;
 import com.fs.starfarer.api.campaign.VisualPanelAPI;
+import com.fs.starfarer.api.combat.BattleCreationContext;
 import com.fs.starfarer.api.combat.EngagementResultAPI;
 import java.awt.Color;
 import org.apache.log4j.Level;
 import org.lazywizard.conversation.Conversation.Node;
 import org.lazywizard.conversation.Conversation.Response;
+import org.lazywizard.conversation.scripts.OnBattleEndScript;
 
 class ConversationDialogPlugin implements InteractionDialogPlugin, ConversationDialog
 {
@@ -24,6 +26,8 @@ class ConversationDialogPlugin implements InteractionDialogPlugin, ConversationD
     private OptionPanelAPI options;
     private VisualPanelAPI visual;
     private Node currentNode;
+    private OnBattleEndScript endBattleScript;
+    private BattleCreationContext context;
 
     ConversationDialogPlugin(Conversation conv, SectorEntityToken talkingTo)
     {
@@ -151,13 +155,28 @@ class ConversationDialogPlugin implements InteractionDialogPlugin, ConversationD
     }
 
     @Override
+    public void startBattle(BattleCreationContext context, OnBattleEndScript onFinish)
+    {
+        this.context = context;
+        this.endBattleScript = onFinish;
+        dialog.startBattle(context);
+    }
+
+    @Override
     public void backFromEngagement(EngagementResultAPI battleResult)
     {
+        if (endBattleScript != null)
+        {
+            endBattleScript.onBattleEnd(talkingTo, battleResult, this);
+            endBattleScript = null;
+        }
+
+        context = null;
     }
 
     @Override
     public Object getContext()
     {
-        return null;
+        return context;
     }
 }

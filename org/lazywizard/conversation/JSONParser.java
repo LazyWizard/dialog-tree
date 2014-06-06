@@ -1,5 +1,7 @@
 package org.lazywizard.conversation;
 
+import org.lazywizard.conversation.scripts.VisibilityScript;
+import org.lazywizard.conversation.scripts.OnChosenScript;
 import com.fs.starfarer.api.Global;
 import java.util.ArrayList;
 import java.util.Iterator;
