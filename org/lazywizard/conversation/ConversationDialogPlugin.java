@@ -39,6 +39,11 @@ class ConversationDialogPlugin implements InteractionDialogPlugin, ConversationD
     @Override
     public void init(InteractionDialogAPI dialog)
     {
+        if (conv.getStartingNode() == null)
+        {
+            throw new RuntimeException("No startingNode found!");
+        }
+
         this.dialog = dialog;
         this.text = dialog.getTextPanel();
         this.options = dialog.getOptionPanel();
@@ -161,6 +166,12 @@ class ConversationDialogPlugin implements InteractionDialogPlugin, ConversationD
     @Override
     public void optionMousedOver(String optionText, Object optionData)
     {
+        Response response = (Response) optionData;
+
+        if (response != null)
+        {
+            response.onMousedOver(talkingTo, this);
+        }
     }
 
     @Override

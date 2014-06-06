@@ -1,7 +1,7 @@
 package org.lazywizard.conversation;
 
+import org.lazywizard.conversation.scripts.ResponseScript;
 import org.lazywizard.conversation.scripts.VisibilityScript;
-import org.lazywizard.conversation.scripts.OnChosenScript;
 import com.fs.starfarer.api.Global;
 import com.fs.starfarer.api.campaign.SectorEntityToken;
 import java.util.ArrayList;
@@ -186,7 +186,7 @@ public final class Conversation implements JSONString
     {
         private final String text, tooltip;
         private final String leadsTo;
-        private final OnChosenScript onChosen;
+        private final ResponseScript responseScript;
         private final VisibilityScript visibility;
         private Node parentNode = null;
 
@@ -198,12 +198,12 @@ public final class Conversation implements JSONString
         }
 
         public Response(String text, String leadsTo, String tooltip,
-                OnChosenScript onChosen, VisibilityScript visibility)
+                ResponseScript responseScript, VisibilityScript visibility)
         {
             this.text = text;
             this.leadsTo = leadsTo;
             this.tooltip = tooltip;
-            this.onChosen = onChosen;
+            this.responseScript = responseScript;
             this.visibility = visibility;
         }
 
@@ -222,9 +222,20 @@ public final class Conversation implements JSONString
             Global.getLogger(Response.class).log(Level.DEBUG,
                     "Chose response: \"" + text + "\"\nLeads to: " + leadsTo);
 
-            if (onChosen != null)
+            if (responseScript != null)
             {
-                onChosen.onChosen(talkingTo, dialog);
+                responseScript.onChosen(talkingTo, dialog);
+            }
+        }
+
+        void onMousedOver(SectorEntityToken talkingTo, ConversationDialog dialog)
+        {
+            Global.getLogger(Response.class).log(Level.DEBUG,
+                    "Moused over response: \"" + text + "\"\nLeads to: " + leadsTo);
+
+            if (responseScript != null)
+            {
+                responseScript.onMousedOver(talkingTo, dialog);
             }
         }
 
@@ -248,9 +259,9 @@ public final class Conversation implements JSONString
             return Visibility.VISIBLE;
         }
 
-        OnChosenScript getOnChosenScript()
+        ResponseScript getResponseScript()
         {
-            return onChosen;
+            return responseScript;
         }
 
         VisibilityScript getVisibilityScript()

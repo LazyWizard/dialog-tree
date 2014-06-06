@@ -1,6 +1,7 @@
 package org.lazywizard.conversation;
 
 import com.fs.starfarer.api.Global;
+import com.fs.starfarer.api.campaign.InteractionDialogPlugin;
 import com.fs.starfarer.api.campaign.SectorEntityToken;
 import java.io.IOException;
 import java.util.ArrayList;
@@ -97,7 +98,7 @@ public class ConversationMaster
             {
                 responses.add(new Response(response.getText(),
                         response.getDestination(), response.getTooltip(),
-                        response.getOnChosenScript(),
+                        response.getResponseScript(),
                         response.getVisibilityScript()));
             }
 
@@ -133,18 +134,19 @@ public class ConversationMaster
         return copyConversation(conversations.get(id));
     }
 
+    public static InteractionDialogPlugin createDialogPlugin(Conversation conv,
+            SectorEntityToken talkingTo)
+    {
+        return new ConversationDialogPlugin(conv, talkingTo);
+    }
+
     public static void showConversation(Conversation conv, SectorEntityToken talkingTo)
     {
-        if (conv.getStartingNode() == null)
-        {
-            throw new RuntimeException("No startingNode found!");
-        }
-
         // DEBUG
         System.out.println(conv.toJSONString());
 
         Global.getSector().getCampaignUI().showInteractionDialog(
-                new ConversationDialogPlugin(conv, talkingTo), talkingTo);
+                createDialogPlugin(conv, talkingTo), talkingTo);
     }
 
     public static boolean isPlayerInConversation()
