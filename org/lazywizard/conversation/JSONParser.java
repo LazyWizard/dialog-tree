@@ -1,7 +1,6 @@
 package org.lazywizard.conversation;
 
 import org.lazywizard.conversation.scripts.VisibilityScript;
-import org.lazywizard.conversation.scripts.OnChosenScript;
 import com.fs.starfarer.api.Global;
 import java.util.ArrayList;
 import java.util.Iterator;
@@ -12,6 +11,7 @@ import org.json.JSONException;
 import org.json.JSONObject;
 import org.lazywizard.conversation.Conversation.Node;
 import org.lazywizard.conversation.Conversation.Response;
+import org.lazywizard.conversation.scripts.ResponseScript;
 
 // TODO: Write raw JSON text ourselves if we want to preserve key-pair ordering
 class JSONParser
@@ -114,9 +114,9 @@ class JSONParser
                     .getClass().getCanonicalName());
         }
 
-        if (response.getOnChosenScript() != null)
+        if (response.getResponseScript() != null)
         {
-            json.put("onChosenScript", response.getOnChosenScript()
+            json.put("responseScript", response.getResponseScript()
                     .getClass().getCanonicalName());
         }
 
@@ -130,25 +130,25 @@ class JSONParser
         String tooltip = data.optString("tooltip", null);
 
         // Try to create the 'on chosen' effect script if an entry for it is present
-        OnChosenScript onChosen = null;
-        String scriptPath = data.optString("onChosenScript", null);
+        ResponseScript responseScript = null;
+        String scriptPath = data.optString("responseScript", null);
         if (scriptPath != null)
         {
-            OnChosenScript tmp = null;
+            ResponseScript tmp = null;
 
             try
             {
-                tmp = (OnChosenScript) Global.getSettings()
+                tmp = (ResponseScript) Global.getSettings()
                         .getScriptClassLoader().loadClass(scriptPath).newInstance();
             }
             catch (ClassNotFoundException | ClassCastException |
                     IllegalAccessException | InstantiationException ex)
             {
-                throw new RuntimeException("Failed to create OnChosenScript: "
+                throw new RuntimeException("Failed to create responseScript: "
                         + scriptPath, ex);
             }
 
-            onChosen = tmp;
+            responseScript = tmp;
         }
 
         // Try to create the visibility script if an entry for it is present
@@ -173,7 +173,7 @@ class JSONParser
             visibility = tmp;
         }
 
-        return new Response(text, leadsTo, tooltip, onChosen, visibility);
+        return new Response(text, leadsTo, tooltip, responseScript, visibility);
     }
 
     private JSONParser()
