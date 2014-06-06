@@ -1,6 +1,5 @@
 package org.lazywizard.conversation;
 
-import org.lazywizard.conversation.scripts.VisibilityScript;
 import com.fs.starfarer.api.Global;
 import java.util.ArrayList;
 import java.util.Iterator;
@@ -12,6 +11,7 @@ import org.json.JSONObject;
 import org.lazywizard.conversation.Conversation.Node;
 import org.lazywizard.conversation.Conversation.Response;
 import org.lazywizard.conversation.scripts.ResponseScript;
+import org.lazywizard.conversation.scripts.VisibilityScript;
 
 // TODO: Write raw JSON text ourselves if we want to preserve key-pair ordering
 class JSONParser
@@ -144,7 +144,7 @@ class JSONParser
             catch (ClassNotFoundException | ClassCastException |
                     IllegalAccessException | InstantiationException ex)
             {
-                throw new RuntimeException("Failed to create responseScript: "
+                throw new RuntimeException("Failed to create ResponseScript: "
                         + scriptPath, ex);
             }
 

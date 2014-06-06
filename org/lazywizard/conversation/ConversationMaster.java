@@ -19,7 +19,7 @@ public class ConversationMaster
     private static final String MOD_ID = "lw_dialog";
     private static final String CSV_PATH = "data/conv/conversations.csv";
     private static final Map<String, Conversation> conversations = new HashMap<>();
-    static Conversation currentConv = null;
+    private static Conversation currentConv = null;
 
     public static void registerConversation(String convId, Conversation conv)
     {
@@ -157,6 +157,11 @@ public class ConversationMaster
     public static Conversation getCurrentConversation()
     {
         return currentConv;
+    }
+
+    static void setCurrentConversation(Conversation conv)
+    {
+        currentConv = conv;
     }
 
     private ConversationMaster()
