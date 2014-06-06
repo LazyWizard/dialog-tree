@@ -92,6 +92,12 @@ class ConversationDialogPlugin implements InteractionDialogPlugin, ConversationD
     }
 
     @Override
+    public Conversation getConversation()
+    {
+        return conv;
+    }
+
+    @Override
     public SectorEntityToken getConversationPartner()
     {
         return talkingTo;
@@ -99,7 +105,7 @@ class ConversationDialogPlugin implements InteractionDialogPlugin, ConversationD
 
     private void checkAddResponse(Response response)
     {
-        Response.Visibility visibility = response.getVisibility(talkingTo, this);
+        Response.Visibility visibility = response.getVisibility(talkingTo);
 
         // Dev mode = on, allow player to choose even disabled/hidden options
         if (devMode)
