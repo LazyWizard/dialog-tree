@@ -29,7 +29,7 @@ public class ConversationMaster
             return;
         }
 
-        if (!conv.isValid())
+        if (conv.getConversationScript() == null && !conv.isValid())
         {
             throw new RuntimeException("Conversation '" + convId
                     + "' is broken or malformed!");

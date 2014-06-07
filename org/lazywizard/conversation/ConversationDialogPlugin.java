@@ -54,9 +54,9 @@ class ConversationDialogPlugin implements InteractionDialogPlugin, ConversationD
         ConversationMaster.setCurrentConversation(conv);
         conv.init(info);
 
-        if (conv.getStartingNode() == null)
+        if (!conv.isValid())
         {
-            throw new RuntimeException("No startingNode found!");
+            throw new RuntimeException("Conversation is broken or malformed!");
         }
 
         goToNode(conv.getStartingNode());
