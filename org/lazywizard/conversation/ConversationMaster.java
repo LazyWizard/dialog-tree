@@ -87,7 +87,6 @@ public class ConversationMaster
         }
 
         Conversation copy = new Conversation();
-        Node startingNode = null;
         for (Map.Entry<String, Node> nodeData : conv.getNodes().entrySet())
         {
             String nodeId = nodeData.getKey();
@@ -99,10 +98,11 @@ public class ConversationMaster
                 responses.add(new Response(response.getText(),
                         response.getDestination(), response.getTooltip(),
                         response.getResponseScript(),
+                        response.getOnChosenArgs(),
                         response.getVisibilityScript()));
             }
 
-            Node node = new Node(oldNode.getText(), responses);
+            Node node = new Node(oldNode.getText(), responses, oldNode.getNodeScript());
             copy.addNode(nodeId, node);
 
             if (oldNode == conv.getStartingNode())
