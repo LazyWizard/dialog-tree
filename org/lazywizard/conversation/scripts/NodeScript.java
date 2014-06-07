@@ -1,7 +1,7 @@
 package org.lazywizard.conversation.scripts;
 
-import org.lazywizard.conversation.DialogInfo;
 import org.lazywizard.conversation.Conversation.Node;
+import org.lazywizard.conversation.DialogInfo;
 
 public interface NodeScript
 {

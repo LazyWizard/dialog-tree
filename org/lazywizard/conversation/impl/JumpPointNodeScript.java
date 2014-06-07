@@ -5,8 +5,8 @@ import com.fs.starfarer.api.campaign.CampaignFleetAPI;
 import com.fs.starfarer.api.campaign.JumpPointAPI;
 import com.fs.starfarer.api.campaign.JumpPointAPI.JumpDestination;
 import com.fs.starfarer.api.campaign.VisualPanelAPI;
-import org.lazywizard.conversation.DialogInfo;
 import org.lazywizard.conversation.Conversation;
+import org.lazywizard.conversation.DialogInfo;
 import org.lazywizard.conversation.scripts.NodeScript;
 import org.lazywizard.conversation.scripts.ResponseScript;
 
@@ -106,7 +106,7 @@ public class JumpPointNodeScript implements NodeScript
     {
         private final JumpDestination dest;
 
-        public JumpPointResponseScript(JumpDestination dest)
+        private JumpPointResponseScript(JumpDestination dest)
         {
             this.dest = dest;
         }

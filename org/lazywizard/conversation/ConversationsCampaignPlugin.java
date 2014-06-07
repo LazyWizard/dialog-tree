@@ -16,7 +16,7 @@ class ConversationsCampaignPlugin extends BaseCampaignPlugin
         {
             Conversation conv = ConversationMaster.getConversation("jumpPoint");
             InteractionDialogPlugin dialog = ConversationMaster.createDialogPlugin(conv, interactionTarget);
-            return new PluginPick<InteractionDialogPlugin>(dialog, PickPriority.MOD_GENERAL);
+            return new PluginPick<>(dialog, PickPriority.MOD_GENERAL);
         }
 
         return null;
