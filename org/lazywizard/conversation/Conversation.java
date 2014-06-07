@@ -1,6 +1,7 @@
 package org.lazywizard.conversation;
 
 import com.fs.starfarer.api.Global;
+import com.fs.starfarer.api.campaign.CampaignFleetAPI;
 import com.fs.starfarer.api.campaign.SectorEntityToken;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -121,15 +122,20 @@ public final class Conversation implements JSONString
         }
     }
 
-    public static final class ConversationInfo
+    public static final class Info
     {
         private final SectorEntityToken talkingTo;
         private final ConversationDialog dialog;
 
-        ConversationInfo(SectorEntityToken talkingTo, ConversationDialog dialog)
+        Info(SectorEntityToken talkingTo, ConversationDialog dialog)
         {
             this.talkingTo = talkingTo;
             this.dialog = dialog;
+        }
+
+        public CampaignFleetAPI getPlayer()
+        {
+            return Global.getSector().getPlayerFleet();
         }
 
         public SectorEntityToken getConversationPartner()
@@ -168,10 +174,10 @@ public final class Conversation implements JSONString
             }
         }
 
-        void init(ConversationInfo info)
+        void init(Info info)
         {
             System.out.println("Should init now (hasInitated: " + hasInitiated
-                    + ", nodeSript: " + (nodeScript != null) + ")");
+                    + ", nodeScript: " + (nodeScript != null) + ")");
 
             if (!hasInitiated && nodeScript != null)
             {
@@ -202,6 +208,11 @@ public final class Conversation implements JSONString
         public void setText(String text)
         {
             this.text = text;
+        }
+
+        public void appendText(String text)
+        {
+            this.text += " " + text;
         }
 
         public void addResponse(Response response)
@@ -282,7 +293,7 @@ public final class Conversation implements JSONString
             this.parentNode = parentNode;
         }
 
-        void onChosen(ConversationInfo info)
+        void onChosen(Info info)
         {
             Global.getLogger(Response.class).log(Level.DEBUG,
                     "Chose response: \"" + text + "\"\nLeads to: " + leadsTo);
@@ -293,7 +304,7 @@ public final class Conversation implements JSONString
             }
         }
 
-        void onMousedOver(ConversationInfo info, boolean wasLastMousedOver)
+        void onMousedOver(Info info, boolean wasLastMousedOver)
         {
             Global.getLogger(Response.class).log(Level.DEBUG,
                     "Moused over response: \"" + text + "\"\nLeads to: " + leadsTo);

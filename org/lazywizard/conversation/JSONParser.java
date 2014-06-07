@@ -71,7 +71,12 @@ class JSONParser
     static JSONObject toJSON(Node node) throws JSONException
     {
         JSONObject json = new JSONObject();
-        json.put("text", node.getText());
+
+        String text = node.getText();
+        if (text != null && !text.isEmpty())
+        {
+            json.put("text", node.getText());
+        }
 
         for (Response tmp : node.getResponses())
         {
@@ -88,14 +93,17 @@ class JSONParser
 
     static Node parseNode(JSONObject data) throws JSONException
     {
-        String text = data.getString("text");
+        String text = data.optString("text", "");
         List<Response> responses = new ArrayList<>();
 
-        JSONArray rData = data.getJSONArray("responses");
-        for (int x = 0; x < rData.length(); x++)
+        JSONArray rData = data.optJSONArray("responses");
+        if (rData != null)
         {
-            Response response = parseResponse(rData.getJSONObject(x));
-            responses.add(response);
+            for (int x = 0; x < rData.length(); x++)
+            {
+                Response response = parseResponse(rData.getJSONObject(x));
+                responses.add(response);
+            }
         }
 
         String scriptPath = data.optString("nodeScript", null);
