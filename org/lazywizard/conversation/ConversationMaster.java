@@ -16,8 +16,6 @@ import org.lazywizard.conversation.Conversation.Response;
 
 public class ConversationMaster
 {
-    private static final String MOD_ID = "lw_dialog";
-    private static final String CSV_PATH = "data/conv/conversations.csv";
     private static final Map<String, Conversation> conversations = new HashMap<>();
     private static Conversation currentConv = null;
 
@@ -29,6 +27,7 @@ public class ConversationMaster
             return;
         }
 
+        // Validate unscripted conversations now, scripted ones after initiation
         if (conv.getConversationScript() == null && !conv.isValid())
         {
             throw new RuntimeException("Conversation '" + convId
@@ -45,12 +44,12 @@ public class ConversationMaster
         try
         {
             JSONArray csv = Global.getSettings().getMergedSpreadsheetDataForMod(
-                    "id", CSV_PATH, MOD_ID);
+                    Constants.CSV_ROW_ID, Constants.CSV_PATH, Constants.MOD_ID);
             for (int x = 0; x < csv.length(); x++)
             {
                 JSONObject row = csv.getJSONObject(x);
-                String id = row.getString("id");
-                String filePath = row.getString("filePath");
+                String id = row.getString(Constants.CSV_ROW_ID);
+                String filePath = row.getString(Constants.CSV_ROW_PATH);
                 try
                 {
                     JSONObject rawData = Global.getSettings().loadJSON(filePath);

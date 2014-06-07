@@ -182,9 +182,6 @@ public final class Conversation implements JSONString
 
         void init(DialogInfo info)
         {
-            System.out.println("Should init now (hasInitated: " + hasInitiated
-                    + ", nodeScript: " + (nodeScript != null) + ")");
-
             if (!hasInitiated && nodeScript != null)
             {
                 nodeScript.init(this, info);

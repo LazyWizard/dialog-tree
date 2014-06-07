@@ -29,23 +29,23 @@ class JSONParser
 
             if (conv.getStartingNode() == tmp.getValue())
             {
-                json.put("startingNode", tmp.getKey());
+                json.put(Constants.CONV_STARTING_NODE, tmp.getKey());
             }
         }
 
         if (conv.getConversationScript()!= null)
         {
-            json.put("convScript", conv.getConversationScript()
+            json.put(Constants.CONV_SCRIPT, conv.getConversationScript()
                     .getClass().getCanonicalName());
         }
 
-        json.put("nodes", nodes);
+        json.put(Constants.CONV_NODES, nodes);
         return json;
     }
 
     static Conversation parseConversation(JSONObject data) throws JSONException
     {
-        String scriptPath = data.optString("convScript", null);
+        String scriptPath = data.optString(Constants.CONV_SCRIPT, null);
         ConversationScript script = null;
         if (scriptPath != null)
         {
@@ -64,8 +64,8 @@ class JSONParser
 
         Conversation conv = new Conversation(script);
 
-        String startingNode = data.getString("startingNode");
-        JSONObject nodes = data.getJSONObject("nodes");
+        String startingNode = data.getString(Constants.CONV_STARTING_NODE);
+        JSONObject nodes = data.getJSONObject(Constants.CONV_NODES);
         for (Iterator keys = nodes.keys(); keys.hasNext();)
         {
             String nodeId = (String) keys.next();
@@ -100,17 +100,17 @@ class JSONParser
         String text = node.getText();
         if (text != null && !text.isEmpty())
         {
-            json.put("text", node.getText());
+            json.put(Constants.NODE_TEXT, node.getText());
         }
 
         for (Response tmp : node.getResponsesCopy())
         {
-            json.append("responses", toJSON(tmp));
+            json.append(Constants.NODE_RESPONSES, toJSON(tmp));
         }
 
         if (node.getNodeScript() != null)
         {
-            json.put("nodeScript", node.getNodeScript().getClass().getCanonicalName());
+            json.put(Constants.NODE_SCRIPT, node.getNodeScript().getClass().getCanonicalName());
         }
 
         return json;
@@ -118,10 +118,10 @@ class JSONParser
 
     static Node parseNode(JSONObject data) throws JSONException
     {
-        String text = data.optString("text", "");
+        String text = data.optString(Constants.NODE_TEXT, "");
         List<Response> responses = new ArrayList<>();
 
-        JSONArray rData = data.optJSONArray("responses");
+        JSONArray rData = data.optJSONArray(Constants.NODE_RESPONSES);
         if (rData != null)
         {
             for (int x = 0; x < rData.length(); x++)
@@ -131,7 +131,7 @@ class JSONParser
             }
         }
 
-        String scriptPath = data.optString("nodeScript", null);
+        String scriptPath = data.optString(Constants.NODE_SCRIPT, null);
         if (scriptPath != null)
         {
             try
@@ -154,19 +154,19 @@ class JSONParser
     static JSONObject toJSON(Response response) throws JSONException
     {
         JSONObject json = new JSONObject();
-        json.put("text", response.getText());
-        json.putOpt("tooltip", response.getTooltip());
-        json.putOpt("leadsTo", response.getDestination());
+        json.put(Constants.RESPONSE_TEXT, response.getText());
+        json.putOpt(Constants.RESPONSE_TOOLTIP, response.getTooltip());
+        json.putOpt(Constants.RESPONSE_LEADS_TO, response.getDestination());
 
         if (response.getVisibilityScript() != null)
         {
-            json.put("visibilityScript", response.getVisibilityScript()
+            json.put(Constants.RESPONSE_VISIBILITY, response.getVisibilityScript()
                     .getClass().getCanonicalName());
         }
 
         if (response.getResponseScript() != null)
         {
-            json.put("responseScript", response.getResponseScript()
+            json.put(Constants.RESPONSE_SCRIPT, response.getResponseScript()
                     .getClass().getCanonicalName());
 
             Object[] onChosenArgs = response.getOnChosenArgs();
@@ -174,7 +174,7 @@ class JSONParser
             {
                 for (Object tmp : onChosenArgs)
                 {
-                    json.append("onChosenArgs", tmp);
+                    json.append(Constants.RESPONSE_ON_CHOSEN_ARGS, tmp);
                 }
             }
         }
@@ -184,14 +184,14 @@ class JSONParser
 
     static Response parseResponse(JSONObject data) throws JSONException
     {
-        String text = data.getString("text");
-        String leadsTo = data.optString("leadsTo", null);
-        String tooltip = data.optString("tooltip", null);
+        String text = data.getString(Constants.RESPONSE_TEXT);
+        String leadsTo = data.optString(Constants.RESPONSE_LEADS_TO, null);
+        String tooltip = data.optString(Constants.RESPONSE_TOOLTIP, null);
 
         // Try to create the 'on chosen' effect script if an entry for it is present
         ResponseScript responseScript = null;
         Object[] onChosenArgs = null;
-        String scriptPath = data.optString("responseScript", null);
+        String scriptPath = data.optString(Constants.RESPONSE_SCRIPT, null);
         if (scriptPath != null)
         {
             ResponseScript tmp = null;
@@ -200,7 +200,7 @@ class JSONParser
             {
                 tmp = (ResponseScript) Global.getSettings()
                         .getScriptClassLoader().loadClass(scriptPath).newInstance();
-                JSONArray args = data.optJSONArray("onChosenArgs");
+                JSONArray args = data.optJSONArray(Constants.RESPONSE_ON_CHOSEN_ARGS);
 
                 if (args != null)
                 {
@@ -223,7 +223,7 @@ class JSONParser
 
         // Try to create the visibility script if an entry for it is present
         VisibilityScript visibility = null;
-        scriptPath = data.optString("visibilityScript", null);
+        scriptPath = data.optString(Constants.RESPONSE_VISIBILITY, null);
         if (scriptPath != null)
         {
             VisibilityScript tmp = null;
