@@ -1,11 +1,11 @@
 package org.lazywizard.conversation.scripts;
 
-import org.lazywizard.conversation.Conversation.Info;
+import org.lazywizard.conversation.DialogInfo;
 import org.lazywizard.conversation.Conversation.Node;
 
 public interface NodeScript
 {
-    public void init(Node node, Info info);
+    public void init(Node node, DialogInfo info);
 
     public void advance(float amount);
 }

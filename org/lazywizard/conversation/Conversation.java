@@ -1,7 +1,6 @@
 package org.lazywizard.conversation;
 
 import com.fs.starfarer.api.Global;
-import com.fs.starfarer.api.campaign.CampaignFleetAPI;
 import com.fs.starfarer.api.campaign.SectorEntityToken;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -12,20 +11,49 @@ import java.util.Set;
 import org.apache.log4j.Level;
 import org.json.JSONException;
 import org.json.JSONString;
+import org.lazywizard.conversation.scripts.ConversationScript;
 import org.lazywizard.conversation.scripts.NodeScript;
 import org.lazywizard.conversation.scripts.ResponseScript;
 import org.lazywizard.conversation.scripts.VisibilityScript;
 
 // TODO: Much more commenting, better logging
-// TODO: Hook into ConversationDialogPlugin's advance() method (last missing feature)
+// TODO: Clean up constructors
 public final class Conversation implements JSONString
 {
     private final Map<String, Node> nodes;
+    private final ConversationScript convScript;
     private Node startingNode;
 
-    public Conversation()
+    public Conversation(Map<String, Node> nodes)
     {
-        nodes = new HashMap<>();
+        this(nodes, null);
+    }
+
+    public Conversation(ConversationScript script)
+    {
+        this(new HashMap<String, Node>(), script);
+    }
+
+    public Conversation(Map<String, Node> nodes, ConversationScript script)
+    {
+        this.nodes = nodes;
+        this.convScript = script;
+    }
+
+    void init(DialogInfo info)
+    {
+        if (convScript != null)
+        {
+            convScript.init(this, info);
+        }
+    }
+
+    void advance(float amount, Node node)
+    {
+        if (convScript != null)
+        {
+            convScript.advance(amount, node);
+        }
     }
 
     public void addNode(String id, Node node)
@@ -63,6 +91,11 @@ public final class Conversation implements JSONString
     public Map<String, Node> getNodes()
     {
         return new HashMap<>(nodes);
+    }
+
+    ConversationScript getConversationScript()
+    {
+        return convScript;
     }
 
     public Node getStartingNode()
@@ -122,33 +155,6 @@ public final class Conversation implements JSONString
         }
     }
 
-    public static final class Info
-    {
-        private final SectorEntityToken talkingTo;
-        private final ConversationDialog dialog;
-
-        Info(SectorEntityToken talkingTo, ConversationDialog dialog)
-        {
-            this.talkingTo = talkingTo;
-            this.dialog = dialog;
-        }
-
-        public CampaignFleetAPI getPlayer()
-        {
-            return Global.getSector().getPlayerFleet();
-        }
-
-        public SectorEntityToken getConversationPartner()
-        {
-            return talkingTo;
-        }
-
-        public ConversationDialog getDialog()
-        {
-            return dialog;
-        }
-    }
-
     public static final class Node implements JSONString
     {
         private String text;
@@ -174,7 +180,7 @@ public final class Conversation implements JSONString
             }
         }
 
-        void init(Info info)
+        void init(DialogInfo info)
         {
             System.out.println("Should init now (hasInitated: " + hasInitiated
                     + ", nodeScript: " + (nodeScript != null) + ")");
@@ -293,7 +299,7 @@ public final class Conversation implements JSONString
             this.parentNode = parentNode;
         }
 
-        void onChosen(Info info)
+        void onChosen(DialogInfo info)
         {
             Global.getLogger(Response.class).log(Level.DEBUG,
                     "Chose response: \"" + text + "\"\nLeads to: " + leadsTo);
@@ -304,7 +310,7 @@ public final class Conversation implements JSONString
             }
         }
 
-        void onMousedOver(Info info, boolean wasLastMousedOver)
+        void onMousedOver(DialogInfo info, boolean wasLastMousedOver)
         {
             Global.getLogger(Response.class).log(Level.DEBUG,
                     "Moused over response: \"" + text + "\"\nLeads to: " + leadsTo);

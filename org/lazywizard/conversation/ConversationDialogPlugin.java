@@ -12,7 +12,7 @@ import com.fs.starfarer.api.combat.BattleCreationContext;
 import com.fs.starfarer.api.combat.EngagementResultAPI;
 import java.awt.Color;
 import org.apache.log4j.Level;
-import org.lazywizard.conversation.Conversation.Info;
+import org.lazywizard.conversation.DialogInfo;
 import org.lazywizard.conversation.Conversation.Node;
 import org.lazywizard.conversation.Conversation.Response;
 import org.lazywizard.conversation.scripts.OnBattleEndScript;
@@ -22,7 +22,7 @@ class ConversationDialogPlugin implements InteractionDialogPlugin, ConversationD
     private final Conversation conv;
     private final SectorEntityToken talkingTo;
     private final boolean devMode;
-    private final Info info;
+    private final DialogInfo info;
     private InteractionDialogAPI dialog;
     private TextPanelAPI text;
     private OptionPanelAPI options;
@@ -37,7 +37,7 @@ class ConversationDialogPlugin implements InteractionDialogPlugin, ConversationD
         this.conv = conv;
         this.talkingTo = talkingTo;
         devMode = Global.getSettings().isDevMode();
-        info = new Info(talkingTo, this);
+        info = new DialogInfo(talkingTo, this);
     }
 
     @Override
@@ -60,6 +60,7 @@ class ConversationDialogPlugin implements InteractionDialogPlugin, ConversationD
 
         ConversationMaster.setCurrentConversation(conv);
         goToNode(conv.getStartingNode());
+        conv.init(info);
     }
 
     @Override
@@ -195,7 +196,7 @@ class ConversationDialogPlugin implements InteractionDialogPlugin, ConversationD
     @Override
     public void advance(float amount)
     {
-        // TODO: add scripts for conversation and node that are hooked into here
+        conv.advance(amount, currentNode);
         currentNode.advance(amount);
     }
 
