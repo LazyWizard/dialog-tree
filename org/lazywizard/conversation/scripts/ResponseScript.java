@@ -1,10 +1,10 @@
 package org.lazywizard.conversation.scripts;
 
-import org.lazywizard.conversation.Conversation.ConversationInfo;
+import org.lazywizard.conversation.Conversation.Info;
 
 public interface ResponseScript
 {
-    public void onMousedOver(ConversationInfo info, boolean wasLastMousedOver);
+    public void onMousedOver(Info info, boolean wasLastMousedOver);
 
-    public void onChosen(ConversationInfo info, Object[] args);
+    public void onChosen(Info info, Object[] args);
 }
