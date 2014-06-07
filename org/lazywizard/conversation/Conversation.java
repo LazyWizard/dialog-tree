@@ -90,7 +90,7 @@ public final class Conversation implements JSONString
 
     public Map<String, Node> getNodes()
     {
-        return new HashMap<>(nodes);
+        return nodes;
     }
 
     ConversationScript getConversationScript()
@@ -233,7 +233,7 @@ public final class Conversation implements JSONString
             response.setParentNode(null);
         }
 
-        public List<Response> getResponses()
+        public List<Response> getResponsesCopy()
         {
             return new ArrayList<>(responses);
         }

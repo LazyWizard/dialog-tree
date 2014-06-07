@@ -94,7 +94,7 @@ public class ConversationMaster
             Node oldNode = nodeData.getValue();
 
             List<Response> responses = new ArrayList<>();
-            for (Response response : nodeData.getValue().getResponses())
+            for (Response response : nodeData.getValue().getResponsesCopy())
             {
                 responses.add(new Response(response.getText(),
                         response.getDestination(), response.getTooltip(),
