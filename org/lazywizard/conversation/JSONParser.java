@@ -103,7 +103,7 @@ class JSONParser
             json.put("text", node.getText());
         }
 
-        for (Response tmp : node.getResponses())
+        for (Response tmp : node.getResponsesCopy())
         {
             json.append("responses", toJSON(tmp));
         }

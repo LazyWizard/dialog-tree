@@ -11,8 +11,6 @@ import com.fs.starfarer.api.campaign.VisualPanelAPI;
 import com.fs.starfarer.api.combat.BattleCreationContext;
 import com.fs.starfarer.api.combat.EngagementResultAPI;
 import java.awt.Color;
-import org.apache.log4j.Level;
-import org.lazywizard.conversation.DialogInfo;
 import org.lazywizard.conversation.Conversation.Node;
 import org.lazywizard.conversation.Conversation.Response;
 import org.lazywizard.conversation.scripts.OnBattleEndScript;
@@ -92,7 +90,7 @@ class ConversationDialogPlugin implements InteractionDialogPlugin, ConversationD
     {
         options.clearOptions();
         int numSelectable = 0;
-        for (Response response : currentNode.getResponses())
+        for (Response response : currentNode.getResponsesCopy())
         {
             if (checkAddResponse(response))
             {
