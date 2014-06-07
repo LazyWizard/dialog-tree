@@ -43,11 +43,6 @@ class ConversationDialogPlugin implements InteractionDialogPlugin, ConversationD
     @Override
     public void init(InteractionDialogAPI dialog)
     {
-        if (conv.getStartingNode() == null)
-        {
-            throw new RuntimeException("No startingNode found!");
-        }
-
         this.dialog = dialog;
         this.text = dialog.getTextPanel();
         this.options = dialog.getOptionPanel();
@@ -59,8 +54,14 @@ class ConversationDialogPlugin implements InteractionDialogPlugin, ConversationD
         }
 
         ConversationMaster.setCurrentConversation(conv);
-        goToNode(conv.getStartingNode());
         conv.init(info);
+
+        if (conv.getStartingNode() == null)
+        {
+            throw new RuntimeException("No startingNode found!");
+        }
+
+        goToNode(conv.getStartingNode());
     }
 
     @Override
