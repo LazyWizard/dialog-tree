@@ -1,9 +1,9 @@
 package org.lazywizard.conversation.scripts;
 
 import com.fs.starfarer.api.combat.EngagementResultAPI;
-import org.lazywizard.conversation.Conversation.Info;
+import org.lazywizard.conversation.DialogInfo;
 
 public interface OnBattleEndScript
 {
-    public void onBattleEnd(EngagementResultAPI battleResult, Info info);
+    public void onBattleEnd(EngagementResultAPI battleResult, DialogInfo info);
 }

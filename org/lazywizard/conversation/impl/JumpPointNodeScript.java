@@ -5,6 +5,7 @@ import com.fs.starfarer.api.campaign.CampaignFleetAPI;
 import com.fs.starfarer.api.campaign.JumpPointAPI;
 import com.fs.starfarer.api.campaign.JumpPointAPI.JumpDestination;
 import com.fs.starfarer.api.campaign.VisualPanelAPI;
+import org.lazywizard.conversation.DialogInfo;
 import org.lazywizard.conversation.Conversation;
 import org.lazywizard.conversation.scripts.NodeScript;
 import org.lazywizard.conversation.scripts.ResponseScript;
@@ -30,7 +31,7 @@ public class JumpPointNodeScript implements NodeScript
     }
 
     @Override
-    public void init(Conversation.Node node, Conversation.Info info)
+    public void init(Conversation.Node node, DialogInfo info)
     {
         JumpPointAPI jumpPoint = (JumpPointAPI) info.getConversationPartner();
         CampaignFleetAPI player = info.getPlayer();
@@ -111,12 +112,12 @@ public class JumpPointNodeScript implements NodeScript
         }
 
         @Override
-        public void onMousedOver(Conversation.Info info, boolean wasLastMousedOver)
+        public void onMousedOver(DialogInfo info, boolean wasLastMousedOver)
         {
         }
 
         @Override
-        public void onChosen(Conversation.Info info, Object[] args)
+        public void onChosen(DialogInfo info, Object[] args)
         {
             info.getDialog().endConversation();
             Global.getSector().setPaused(false);

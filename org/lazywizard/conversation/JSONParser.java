@@ -10,6 +10,7 @@ import org.json.JSONException;
 import org.json.JSONObject;
 import org.lazywizard.conversation.Conversation.Node;
 import org.lazywizard.conversation.Conversation.Response;
+import org.lazywizard.conversation.scripts.ConversationScript;
 import org.lazywizard.conversation.scripts.NodeScript;
 import org.lazywizard.conversation.scripts.ResponseScript;
 import org.lazywizard.conversation.scripts.VisibilityScript;
@@ -32,13 +33,37 @@ class JSONParser
             }
         }
 
+        if (conv.getConversationScript()!= null)
+        {
+            json.put("convScript", conv.getConversationScript()
+                    .getClass().getCanonicalName());
+        }
+
         json.put("nodes", nodes);
         return json;
     }
 
     static Conversation parseConversation(JSONObject data) throws JSONException
     {
-        Conversation conv = new Conversation();
+        String scriptPath = data.optString("convScript", null);
+        ConversationScript script = null;
+        if (scriptPath != null)
+        {
+            try
+            {
+                script = (ConversationScript) Global.getSettings()
+                        .getScriptClassLoader().loadClass(scriptPath).newInstance();
+            }
+            catch (ClassNotFoundException | ClassCastException |
+                    IllegalAccessException | InstantiationException ex)
+            {
+                throw new RuntimeException("Failed to create NodeScript: "
+                        + scriptPath, ex);
+            }
+        }
+
+        Conversation conv = new Conversation(script);
+
         String startingNode = data.getString("startingNode");
         JSONObject nodes = data.getJSONObject("nodes");
         for (Iterator keys = nodes.keys(); keys.hasNext();)

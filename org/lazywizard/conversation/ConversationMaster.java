@@ -86,7 +86,8 @@ public class ConversationMaster
             return null;
         }
 
-        Conversation copy = new Conversation();
+        Conversation copy = new Conversation(conv.getConversationScript());
+
         for (Map.Entry<String, Node> nodeData : conv.getNodes().entrySet())
         {
             String nodeId = nodeData.getKey();
