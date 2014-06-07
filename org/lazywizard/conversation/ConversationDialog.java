@@ -14,6 +14,8 @@ public interface ConversationDialog
 
     public Conversation getConversation();
 
+    public Node getCurrentNode();
+
     public void goToNode(Node node);
 
     public void reloadCurrentNode();

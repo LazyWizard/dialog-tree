@@ -12,6 +12,7 @@ import com.fs.starfarer.api.combat.BattleCreationContext;
 import com.fs.starfarer.api.combat.EngagementResultAPI;
 import java.awt.Color;
 import org.apache.log4j.Level;
+import org.lazywizard.conversation.Conversation.ConversationInfo;
 import org.lazywizard.conversation.Conversation.Node;
 import org.lazywizard.conversation.Conversation.Response;
 import org.lazywizard.conversation.scripts.OnBattleEndScript;
@@ -21,6 +22,7 @@ class ConversationDialogPlugin implements InteractionDialogPlugin, ConversationD
     private final Conversation conv;
     private final SectorEntityToken talkingTo;
     private final boolean devMode;
+    private final ConversationInfo info;
     private InteractionDialogAPI dialog;
     private TextPanelAPI text;
     private OptionPanelAPI options;
@@ -35,6 +37,7 @@ class ConversationDialogPlugin implements InteractionDialogPlugin, ConversationD
         this.conv = conv;
         this.talkingTo = talkingTo;
         devMode = Global.getSettings().isDevMode();
+        info = new ConversationInfo(talkingTo, this);
     }
 
     @Override
@@ -77,6 +80,7 @@ class ConversationDialogPlugin implements InteractionDialogPlugin, ConversationD
         }
 
         currentNode = node;
+        currentNode.init(info);
         text.addParagraph(node.getText());
         reloadCurrentNode();
     }
@@ -85,9 +89,19 @@ class ConversationDialogPlugin implements InteractionDialogPlugin, ConversationD
     public void reloadCurrentNode()
     {
         options.clearOptions();
+        int numSelectable = 0;
         for (Response response : currentNode.getResponses())
         {
-            checkAddResponse(response);
+            if (checkAddResponse(response))
+            {
+                numSelectable++;
+            }
+        }
+
+        // Prevent trapping the player in an unfinished node
+        if (numSelectable == 0)
+        {
+            checkAddResponse(new Response("(no responses found, leave)", null));
         }
     }
 
@@ -104,12 +118,18 @@ class ConversationDialogPlugin implements InteractionDialogPlugin, ConversationD
     }
 
     @Override
+    public Node getCurrentNode()
+    {
+        return currentNode;
+    }
+
+    @Override
     public SectorEntityToken getConversationPartner()
     {
         return talkingTo;
     }
 
-    private void checkAddResponse(Response response)
+    private boolean checkAddResponse(Response response)
     {
         Response.Visibility visibility = response.getVisibility(talkingTo);
 
@@ -120,21 +140,18 @@ class ConversationDialogPlugin implements InteractionDialogPlugin, ConversationD
             {
                 case VISIBLE:
                     options.addOption(response.getText(), response, response.getTooltip());
-                    break;
+                    return true;
                 case DISABLED:
                     options.addOption("[DISABLED] " + response.getText(),
                             response, Color.YELLOW, response.getTooltip());
-                    break;
+                    return false;
                 case HIDDEN:
                     options.addOption("[HIDDEN] " + response.getText(),
                             response, Color.RED, response.getTooltip());
-                    break;
+                    return false;
                 default:
-                    Global.getLogger(ConversationDialogPlugin.class).log(Level.ERROR,
-                            "Unsupported status: " + visibility.name());
+                    throw new RuntimeException("Unsupported status: " + visibility.name());
             }
-
-            return;
         }
 
         // Dev mode = off, respect visibility status
@@ -142,16 +159,15 @@ class ConversationDialogPlugin implements InteractionDialogPlugin, ConversationD
         {
             case VISIBLE:
                 options.addOption(response.getText(), response, response.getTooltip());
-                break;
+                return true;
             case DISABLED:
                 options.addOption(response.getText(), response, response.getTooltip());
                 options.setEnabled(response, false);
-                break;
+                return false;
             case HIDDEN:
-                break;
+                return false;
             default:
-                Global.getLogger(ConversationDialogPlugin.class).log(Level.ERROR,
-                        "Unsupported status: " + visibility.name());
+                throw new RuntimeException("Unsupported status: " + visibility.name());
         }
     }
 
@@ -160,7 +176,7 @@ class ConversationDialogPlugin implements InteractionDialogPlugin, ConversationD
     {
         Response response = (Response) optionData;
         text.addParagraph(response.getText(), Color.CYAN);
-        response.onChosen(talkingTo, this);
+        response.onChosen(info);
         goToNode(conv.getNodes().get(response.getDestination()));
     }
 
@@ -172,7 +188,7 @@ class ConversationDialogPlugin implements InteractionDialogPlugin, ConversationD
 
         if (response != null)
         {
-            response.onMousedOver(talkingTo, (response == lastMousedOver), this);
+            response.onMousedOver(info, (response == lastMousedOver));
         }
     }
 
@@ -180,6 +196,7 @@ class ConversationDialogPlugin implements InteractionDialogPlugin, ConversationD
     public void advance(float amount)
     {
         // TODO: add scripts for conversation and node that are hooked into here
+        currentNode.advance(amount);
     }
 
     @Override
@@ -195,7 +212,7 @@ class ConversationDialogPlugin implements InteractionDialogPlugin, ConversationD
     {
         if (endBattleScript != null)
         {
-            endBattleScript.onBattleEnd(talkingTo, battleResult, this);
+            endBattleScript.onBattleEnd(battleResult, info);
             endBattleScript = null;
         }
 

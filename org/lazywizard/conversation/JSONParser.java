@@ -10,6 +10,7 @@ import org.json.JSONException;
 import org.json.JSONObject;
 import org.lazywizard.conversation.Conversation.Node;
 import org.lazywizard.conversation.Conversation.Response;
+import org.lazywizard.conversation.scripts.NodeScript;
 import org.lazywizard.conversation.scripts.ResponseScript;
 import org.lazywizard.conversation.scripts.VisibilityScript;
 
@@ -48,12 +49,6 @@ class JSONParser
             // Create the node (and by extension, the response list)
             Node node = parseNode(nodeData);
 
-            // Prevent trapping the player in an unfinished node
-            if (node.getResponses().isEmpty())
-            {
-                node.addResponse(new Response("(no responses found, leave)", null));
-            }
-
             // Register the node with this conversation
             conv.addNode(nodeId, node);
 
@@ -83,6 +78,11 @@ class JSONParser
             json.append("responses", toJSON(tmp));
         }
 
+        if (node.getNodeScript() != null)
+        {
+            json.put("nodeScript", node.getNodeScript().getClass().getCanonicalName());
+        }
+
         return json;
     }
 
@@ -96,6 +96,23 @@ class JSONParser
         {
             Response response = parseResponse(rData.getJSONObject(x));
             responses.add(response);
+        }
+
+        String scriptPath = data.optString("nodeScript", null);
+        if (scriptPath != null)
+        {
+            try
+            {
+                NodeScript script = (NodeScript) Global.getSettings()
+                        .getScriptClassLoader().loadClass(scriptPath).newInstance();
+                return new Node(text, responses, script);
+            }
+            catch (ClassNotFoundException | ClassCastException |
+                    IllegalAccessException | InstantiationException ex)
+            {
+                throw new RuntimeException("Failed to create NodeScript: "
+                        + scriptPath, ex);
+            }
         }
 
         return new Node(text, responses);
@@ -118,6 +135,15 @@ class JSONParser
         {
             json.put("responseScript", response.getResponseScript()
                     .getClass().getCanonicalName());
+
+            Object[] onChosenArgs = response.getOnChosenArgs();
+            if (onChosenArgs != null && onChosenArgs.length > 0)
+            {
+                for (Object tmp : onChosenArgs)
+                {
+                    json.append("onChosenArgs", tmp);
+                }
+            }
         }
 
         return json;
@@ -131,6 +157,7 @@ class JSONParser
 
         // Try to create the 'on chosen' effect script if an entry for it is present
         ResponseScript responseScript = null;
+        Object[] onChosenArgs = null;
         String scriptPath = data.optString("responseScript", null);
         if (scriptPath != null)
         {
@@ -140,6 +167,16 @@ class JSONParser
             {
                 tmp = (ResponseScript) Global.getSettings()
                         .getScriptClassLoader().loadClass(scriptPath).newInstance();
+                JSONArray args = data.optJSONArray("onChosenArgs");
+
+                if (args != null)
+                {
+                    onChosenArgs = new Object[args.length()];
+                    for (int x = 0; x < args.length(); x++)
+                    {
+                        onChosenArgs[x] = args.get(x);
+                    }
+                }
             }
             catch (ClassNotFoundException | ClassCastException |
                     IllegalAccessException | InstantiationException ex)
@@ -173,7 +210,8 @@ class JSONParser
             visibility = tmp;
         }
 
-        return new Response(text, leadsTo, tooltip, responseScript, visibility);
+        return new Response(text, leadsTo, tooltip, responseScript,
+                onChosenArgs, visibility);
     }
 
     private JSONParser()

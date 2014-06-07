@@ -11,6 +11,7 @@ import java.util.Set;
 import org.apache.log4j.Level;
 import org.json.JSONException;
 import org.json.JSONString;
+import org.lazywizard.conversation.scripts.NodeScript;
 import org.lazywizard.conversation.scripts.ResponseScript;
 import org.lazywizard.conversation.scripts.VisibilityScript;
 
@@ -120,20 +121,71 @@ public final class Conversation implements JSONString
         }
     }
 
+    public static final class ConversationInfo
+    {
+        private final SectorEntityToken talkingTo;
+        private final ConversationDialog dialog;
+
+        ConversationInfo(SectorEntityToken talkingTo, ConversationDialog dialog)
+        {
+            this.talkingTo = talkingTo;
+            this.dialog = dialog;
+        }
+
+        public SectorEntityToken getConversationPartner()
+        {
+            return talkingTo;
+        }
+
+        public ConversationDialog getDialog()
+        {
+            return dialog;
+        }
+    }
+
     public static final class Node implements JSONString
     {
-        private final String text;
+        private String text;
         private final Set<Response> responses;
+        private final NodeScript nodeScript;
         private Conversation parentConv;
+        private boolean hasInitiated = false;
 
         public Node(String text, List<Response> responses)
         {
+            this(text, responses, null);
+        }
+
+        public Node(String text, List<Response> responses, NodeScript script)
+        {
             this.text = text;
             this.responses = new LinkedHashSet<>();
+            this.nodeScript = script;
 
             for (Response tmp : responses)
             {
                 addResponse(tmp);
+            }
+        }
+
+        void init(ConversationInfo info)
+        {
+            System.out.println("Should init now (hasInitated: " + hasInitiated
+                    + ", nodeSript: " + (nodeScript != null) + ")");
+
+            if (!hasInitiated && nodeScript != null)
+            {
+                nodeScript.init(this, info);
+            }
+
+            hasInitiated = true;
+        }
+
+        void advance(float amount)
+        {
+            if (nodeScript != null)
+            {
+                nodeScript.advance(amount);
             }
         }
 
@@ -145,6 +197,11 @@ public final class Conversation implements JSONString
         public String getText()
         {
             return text;
+        }
+
+        public void setText(String text)
+        {
+            this.text = text;
         }
 
         public void addResponse(Response response)
@@ -162,6 +219,11 @@ public final class Conversation implements JSONString
         public List<Response> getResponses()
         {
             return new ArrayList<>(responses);
+        }
+
+        NodeScript getNodeScript()
+        {
+            return nodeScript;
         }
 
         public Conversation getConversation()
@@ -185,9 +247,9 @@ public final class Conversation implements JSONString
 
     public static final class Response implements JSONString
     {
-        private final String text, tooltip;
-        private final String leadsTo;
+        private final String text, tooltip, leadsTo;
         private final ResponseScript responseScript;
+        private final Object[] onChosenArgs;
         private final VisibilityScript visibility;
         private Node parentNode = null;
 
@@ -199,18 +261,20 @@ public final class Conversation implements JSONString
         }
 
         public Response(String text, String leadsTo, String tooltip,
-                ResponseScript responseScript, VisibilityScript visibility)
+                ResponseScript responseScript, Object[] onChosenArgs,
+                VisibilityScript visibility)
         {
             this.text = text;
             this.leadsTo = leadsTo;
             this.tooltip = tooltip;
             this.responseScript = responseScript;
+            this.onChosenArgs = onChosenArgs;
             this.visibility = visibility;
         }
 
         public Response(String text, String leadsTo)
         {
-            this(text, leadsTo, null, null, null);
+            this(text, leadsTo, null, null, null, null);
         }
 
         private void setParentNode(Node parentNode)
@@ -218,26 +282,25 @@ public final class Conversation implements JSONString
             this.parentNode = parentNode;
         }
 
-        void onChosen(SectorEntityToken talkingTo, ConversationDialog dialog)
+        void onChosen(ConversationInfo info)
         {
             Global.getLogger(Response.class).log(Level.DEBUG,
                     "Chose response: \"" + text + "\"\nLeads to: " + leadsTo);
 
             if (responseScript != null)
             {
-                responseScript.onChosen(talkingTo, dialog);
+                responseScript.onChosen(info, onChosenArgs);
             }
         }
 
-        void onMousedOver(SectorEntityToken talkingTo,
-                boolean wasLastMousedOver, ConversationDialog dialog)
+        void onMousedOver(ConversationInfo info, boolean wasLastMousedOver)
         {
             Global.getLogger(Response.class).log(Level.DEBUG,
                     "Moused over response: \"" + text + "\"\nLeads to: " + leadsTo);
 
             if (responseScript != null)
             {
-                responseScript.onMousedOver(talkingTo, wasLastMousedOver, dialog);
+                responseScript.onMousedOver(info, wasLastMousedOver);
             }
         }
 
@@ -264,6 +327,11 @@ public final class Conversation implements JSONString
         ResponseScript getResponseScript()
         {
             return responseScript;
+        }
+
+        Object[] getOnChosenArgs()
+        {
+            return onChosenArgs;
         }
 
         VisibilityScript getVisibilityScript()
