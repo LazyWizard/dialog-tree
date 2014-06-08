@@ -99,7 +99,8 @@ public class ConversationMaster
                         response.getDestination(), response.getTooltip(),
                         response.getResponseScript(),
                         response.getOnChosenArgs(),
-                        response.getVisibilityScript()));
+                        response.getVisibilityScript(),
+                        response.getVisibilityArgs()));
             }
 
             Node node = new Node(oldNode.getText(), responses, oldNode.getNodeScript());

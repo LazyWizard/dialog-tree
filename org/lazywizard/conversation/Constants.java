@@ -20,6 +20,7 @@ class Constants
     static final String RESPONSE_TOOLTIP = "tooltip";
     static final String RESPONSE_LEADS_TO = "leadsTo";
     static final String RESPONSE_VISIBILITY = "visibilityScript";
+    static final String RESPONSE_VISIBILITY_ARGS = "visibilityArgs";
     static final String RESPONSE_SCRIPT = "responseScript";
     static final String RESPONSE_ON_CHOSEN_ARGS = "onChosenArgs";
 
