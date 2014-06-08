@@ -169,8 +169,8 @@ class JSONParser
             json.put(Constants.RESPONSE_SCRIPT, response.getResponseScript()
                     .getClass().getCanonicalName());
 
-            Object[] onChosenArgs = response.getOnChosenArgs();
-            if (onChosenArgs != null && onChosenArgs.length > 0)
+            List onChosenArgs = response.getOnChosenArgs();
+            if (onChosenArgs != null && onChosenArgs.size() > 0)
             {
                 for (Object tmp : onChosenArgs)
                 {
@@ -190,7 +190,7 @@ class JSONParser
 
         // Try to create the 'on chosen' effect script if an entry for it is present
         ResponseScript responseScript = null;
-        Object[] onChosenArgs = null;
+        List onChosenArgs = null;
         String scriptPath = data.optString(Constants.RESPONSE_SCRIPT, null);
         if (scriptPath != null)
         {
@@ -204,10 +204,10 @@ class JSONParser
 
                 if (args != null)
                 {
-                    onChosenArgs = new Object[args.length()];
+                    onChosenArgs = new ArrayList();
                     for (int x = 0; x < args.length(); x++)
                     {
-                        onChosenArgs[x] = args.get(x);
+                        onChosenArgs.add(args.get(x));
                     }
                 }
             }

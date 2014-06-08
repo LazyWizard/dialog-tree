@@ -263,7 +263,7 @@ public final class Conversation implements JSONString
     {
         private final String text, tooltip, leadsTo;
         private final ResponseScript responseScript;
-        private final Object[] onChosenArgs;
+        private final List onChosenArgs;
         private final VisibilityScript visibility;
         private Node parentNode = null;
 
@@ -275,7 +275,7 @@ public final class Conversation implements JSONString
         }
 
         public Response(String text, String leadsTo, String tooltip,
-                ResponseScript responseScript, Object[] onChosenArgs,
+                ResponseScript responseScript, List onChosenArgs,
                 VisibilityScript visibility)
         {
             this.text = text;
@@ -343,7 +343,7 @@ public final class Conversation implements JSONString
             return responseScript;
         }
 
-        Object[] getOnChosenArgs()
+        List getOnChosenArgs()
         {
             return onChosenArgs;
         }

@@ -5,6 +5,7 @@ import com.fs.starfarer.api.campaign.CampaignFleetAPI;
 import com.fs.starfarer.api.campaign.JumpPointAPI;
 import com.fs.starfarer.api.campaign.JumpPointAPI.JumpDestination;
 import com.fs.starfarer.api.campaign.VisualPanelAPI;
+import java.util.List;
 import org.lazywizard.conversation.Conversation;
 import org.lazywizard.conversation.DialogInfo;
 import org.lazywizard.conversation.scripts.NodeScript;
@@ -117,7 +118,7 @@ public class JumpPointNodeScript implements NodeScript
         }
 
         @Override
-        public void onChosen(DialogInfo info, Object[] args)
+        public void onChosen(DialogInfo info, List args)
         {
             info.getDialog().endConversation();
             Global.getSector().setPaused(false);
