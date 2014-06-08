@@ -91,7 +91,7 @@ public class JumpPointNodeScript implements NodeScript
             {
                 node.addResponse(new Conversation.Response(
                         "Order a jump to " + dest.getLabelInInteractionDialog(),
-                        null, null, new JumpPointResponseScript(dest), null, null));
+                        null, null, new JumpPointResponseScript(dest), null, null, null));
             }
         }
 

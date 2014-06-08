@@ -33,7 +33,7 @@ class JSONParser
             }
         }
 
-        if (conv.getConversationScript()!= null)
+        if (conv.getConversationScript() != null)
         {
             json.put(Constants.CONV_SCRIPT, conv.getConversationScript()
                     .getClass().getCanonicalName());
@@ -162,6 +162,15 @@ class JSONParser
         {
             json.put(Constants.RESPONSE_VISIBILITY, response.getVisibilityScript()
                     .getClass().getCanonicalName());
+
+            List visibilityArgs = response.getVisibilityArgs();
+            if (visibilityArgs != null && visibilityArgs.size() > 0)
+            {
+                for (Object tmp : visibilityArgs)
+                {
+                    json.append(Constants.RESPONSE_VISIBILITY_ARGS, tmp);
+                }
+            }
         }
 
         if (response.getResponseScript() != null)
@@ -224,6 +233,7 @@ class JSONParser
         // Try to create the visibility script if an entry for it is present
         VisibilityScript visibility = null;
         scriptPath = data.optString(Constants.RESPONSE_VISIBILITY, null);
+        List visibilityArgs = null;
         if (scriptPath != null)
         {
             VisibilityScript tmp = null;
@@ -232,6 +242,16 @@ class JSONParser
             {
                 tmp = (VisibilityScript) Global.getSettings()
                         .getScriptClassLoader().loadClass(scriptPath).newInstance();
+                JSONArray args = data.optJSONArray(Constants.RESPONSE_VISIBILITY_ARGS);
+
+                if (args != null)
+                {
+                    visibilityArgs = new ArrayList();
+                    for (int x = 0; x < args.length(); x++)
+                    {
+                        visibilityArgs.add(args.get(x));
+                    }
+                }
             }
             catch (ClassNotFoundException | ClassCastException |
                     IllegalAccessException | InstantiationException ex)
@@ -244,7 +264,7 @@ class JSONParser
         }
 
         return new Response(text, leadsTo, tooltip, responseScript,
-                onChosenArgs, visibility);
+                onChosenArgs, visibility, visibilityArgs);
     }
 
     private JSONParser()

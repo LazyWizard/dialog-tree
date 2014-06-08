@@ -265,6 +265,7 @@ public final class Conversation implements JSONString
         private final ResponseScript responseScript;
         private final List onChosenArgs;
         private final VisibilityScript visibility;
+        private final List visibilityArgs;
         private Node parentNode = null;
 
         public enum Visibility
@@ -276,7 +277,7 @@ public final class Conversation implements JSONString
 
         public Response(String text, String leadsTo, String tooltip,
                 ResponseScript responseScript, List onChosenArgs,
-                VisibilityScript visibility)
+                VisibilityScript visibility, List visibilityArgs)
         {
             this.text = text;
             this.leadsTo = leadsTo;
@@ -284,11 +285,12 @@ public final class Conversation implements JSONString
             this.responseScript = responseScript;
             this.onChosenArgs = onChosenArgs;
             this.visibility = visibility;
+            this.visibilityArgs = visibilityArgs;
         }
 
         public Response(String text, String leadsTo)
         {
-            this(text, leadsTo, null, null, null, null);
+            this(text, leadsTo, null, null, null, null, null);
         }
 
         private void setParentNode(Node parentNode)
@@ -332,10 +334,15 @@ public final class Conversation implements JSONString
         {
             if (visibility != null)
             {
-                return visibility.getVisibility(talkingTo);
+                return visibility.getVisibility(talkingTo, visibilityArgs);
             }
 
             return Visibility.VISIBLE;
+        }
+
+        List getVisibilityArgs()
+        {
+            return visibilityArgs;
         }
 
         ResponseScript getResponseScript()
