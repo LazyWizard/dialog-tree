@@ -8,9 +8,12 @@ import com.fs.starfarer.api.campaign.OptionPanelAPI;
 import com.fs.starfarer.api.campaign.SectorEntityToken;
 import com.fs.starfarer.api.campaign.TextPanelAPI;
 import com.fs.starfarer.api.campaign.VisualPanelAPI;
+import com.fs.starfarer.api.characters.PersonAPI;
 import com.fs.starfarer.api.combat.BattleCreationContext;
 import com.fs.starfarer.api.combat.EngagementResultAPI;
 import java.awt.Color;
+import java.util.LinkedHashMap;
+import java.util.Map;
 import org.lazywizard.conversation.Conversation.Node;
 import org.lazywizard.conversation.Conversation.Response;
 import org.lazywizard.conversation.scripts.OnBattleEndScript;
@@ -65,6 +68,7 @@ class ConversationDialogPlugin implements InteractionDialogPlugin, ConversationD
     @Override
     public void endConversation()
     {
+        conv.end(info);
         ConversationMaster.setCurrentConversation(null);
         dialog.dismiss();
     }
@@ -103,6 +107,26 @@ class ConversationDialogPlugin implements InteractionDialogPlugin, ConversationD
         {
             checkAddResponse(new Response("(no responses found, leave)", null));
         }
+    }
+
+    private static String replaceKeywords(String rawText)
+    {
+        String text = rawText;
+        Map<String, String> keywords = new LinkedHashMap<>();
+        // TODO
+        PersonAPI player = Global.getSector().getPlayerFleet().getCommander();
+
+        keywords.put("$PLAYERFIRSTNAME", player.getName().getFirst());
+        keywords.put("$PLAYERLASTNAME", player.getName().getLast());
+        keywords.put("$PLAYERFULLNAME", player.getName().getFullName());
+        //keywords.put("$PLAYERHIMHER", player.getName().getGender() == male ?;
+
+        for (Map.Entry<String, String> entry : keywords.entrySet())
+        {
+            text = text.replaceAll("\\" + entry.getKey(), entry.getValue());
+        }
+
+        return text;
     }
 
     @Override

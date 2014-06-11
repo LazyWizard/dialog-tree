@@ -16,8 +16,12 @@ import org.lazywizard.conversation.scripts.NodeScript;
 import org.lazywizard.conversation.scripts.ResponseScript;
 import org.lazywizard.conversation.scripts.VisibilityScript;
 
-// TODO: Much more commenting, better logging
-// TODO: Clean up constructors
+// TODO: Add Javadoc, more commentary, better logging
+// TODO: Keyword support for node/response text (ex: $PLAYER becomes player name)
+// TODO: Add Selector support
+// TODO: Add color support (tentative, probably adds too much complexity)
+// TODO: Instantiate scripts on init(), null them after conversation ends
+// TODO: This needs some clean-up
 public final class Conversation implements JSONString
 {
     private final Map<String, Node> nodes;
@@ -45,6 +49,14 @@ public final class Conversation implements JSONString
         if (convScript != null)
         {
             convScript.init(this, info);
+        }
+    }
+
+    void end(DialogInfo info)
+    {
+        if (convScript != null)
+        {
+            convScript.end(this, info);
         }
     }
 

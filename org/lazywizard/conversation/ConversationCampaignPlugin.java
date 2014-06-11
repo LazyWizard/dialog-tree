@@ -6,7 +6,7 @@ import com.fs.starfarer.api.campaign.InteractionDialogPlugin;
 import com.fs.starfarer.api.campaign.JumpPointAPI;
 import com.fs.starfarer.api.campaign.SectorEntityToken;
 
-class ConversationsCampaignPlugin extends BaseCampaignPlugin
+class ConversationCampaignPlugin extends BaseCampaignPlugin
 {
     @Override
     public PluginPick<InteractionDialogPlugin> pickInteractionDialogPlugin(
