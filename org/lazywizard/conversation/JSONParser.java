@@ -15,7 +15,7 @@ import org.lazywizard.conversation.scripts.NodeScript;
 import org.lazywizard.conversation.scripts.ResponseScript;
 import org.lazywizard.conversation.scripts.VisibilityScript;
 
-// TODO: Write raw JSON text ourselves if we want to preserve key-pair ordering
+// All JSON-related code should go here to make JSON file structure changes easier
 class JSONParser
 {
     static JSONObject toJSON(Conversation conv) throws JSONException
