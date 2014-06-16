@@ -8,6 +8,8 @@ import org.lazywizard.conversation.scripts.OnBattleEndScript;
 
 public interface ConversationDialog
 {
+    // Do NOT call the dialog's dismiss() method, use endConversation() instead!
+    // Failure to do so will result in script bugs and potential memory leaks
     public InteractionDialogAPI getInteractionDialog();
 
     public SectorEntityToken getConversationPartner();
