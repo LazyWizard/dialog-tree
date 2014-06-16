@@ -8,7 +8,6 @@ import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
-import java.util.logging.Logger;
 import org.apache.log4j.Level;
 import org.json.JSONException;
 import org.json.JSONString;
@@ -19,7 +18,7 @@ import org.lazywizard.conversation.scripts.VisibilityScript;
 
 // TODO: Add Javadoc, more commentary, better logging
 // TODO: Keyword support for node/response text (ex: $PLAYER becomes player name)
-// TODO: Add promtText field to Node
+// TODO: Add promptText field to Node
 // TODO: Add Selector support
 // TODO: Add color support (tentative, probably adds too much complexity)
 // TODO: Instantiate scripts on init(), null them after conversation ends
@@ -75,6 +74,7 @@ public final class Conversation implements JSONString
 
         for (Node node : nodes.values())
         {
+            node.nodeScript = null;
             node.hasInitiated = false;
         }
     }
