@@ -44,12 +44,12 @@ public class ConversationMaster
         try
         {
             JSONArray csv = Global.getSettings().getMergedSpreadsheetDataForMod(
-                    Constants.CSV_ROW_ID, Constants.CSV_PATH, Constants.MOD_ID);
+                    Constants.CSV_COLUMN_ID, Constants.CSV_PATH, Constants.MOD_ID);
             for (int x = 0; x < csv.length(); x++)
             {
                 JSONObject row = csv.getJSONObject(x);
-                String id = row.getString(Constants.CSV_ROW_ID);
-                String filePath = row.getString(Constants.CSV_ROW_PATH);
+                String id = row.getString(Constants.CSV_COLUMN_ID);
+                String filePath = row.getString(Constants.CSV_COLUMN_PATH);
                 try
                 {
                     JSONObject rawData = Global.getSettings().loadJSON(filePath);
@@ -85,7 +85,12 @@ public class ConversationMaster
             return null;
         }
 
-        Conversation copy = new Conversation(conv.getConversationScript());
+        Conversation copy = new Conversation();
+
+        if (conv.getConversationScriptClass() != null)
+        {
+            copy.setConversationScriptClass(conv.getConversationScriptClass());
+        }
 
         for (Map.Entry<String, Node> nodeData : conv.getNodes().entrySet())
         {
@@ -103,7 +108,7 @@ public class ConversationMaster
                         response.getVisibilityArgs()));
             }
 
-            Node node = new Node(oldNode.getText(), responses, oldNode.getNodeScript());
+            Node node = new Node(oldNode.getText(), responses, oldNode.getNodeScriptClass());
             copy.addNode(nodeId, node);
 
             if (oldNode == conv.getStartingNode())
@@ -111,6 +116,7 @@ public class ConversationMaster
                 copy.setStartingNode(node);
             }
         }
+
         return copy;
     }
 

@@ -8,6 +8,7 @@ import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.logging.Logger;
 import org.apache.log4j.Level;
 import org.json.JSONException;
 import org.json.JSONString;
@@ -18,6 +19,7 @@ import org.lazywizard.conversation.scripts.VisibilityScript;
 
 // TODO: Add Javadoc, more commentary, better logging
 // TODO: Keyword support for node/response text (ex: $PLAYER becomes player name)
+// TODO: Add promtText field to Node
 // TODO: Add Selector support
 // TODO: Add color support (tentative, probably adds too much complexity)
 // TODO: Instantiate scripts on init(), null them after conversation ends
@@ -25,29 +27,40 @@ import org.lazywizard.conversation.scripts.VisibilityScript;
 public final class Conversation implements JSONString
 {
     private final Map<String, Node> nodes;
-    private final ConversationScript convScript;
+    private Class<? extends ConversationScript> convScriptClass;
+    private transient ConversationScript convScript;
     private Node startingNode;
+
+    public Conversation()
+    {
+        this(new HashMap<String, Node>(), null);
+    }
 
     public Conversation(Map<String, Node> nodes)
     {
         this(nodes, null);
     }
 
-    public Conversation(ConversationScript script)
-    {
-        this(new HashMap<String, Node>(), script);
-    }
-
-    public Conversation(Map<String, Node> nodes, ConversationScript script)
+    public Conversation(Map<String, Node> nodes,
+            Class<? extends ConversationScript> scriptClass)
     {
         this.nodes = nodes;
-        this.convScript = script;
+        this.convScriptClass = scriptClass;
     }
 
     void init(DialogInfo info)
     {
-        if (convScript != null)
+        if (convScriptClass != null)
         {
+            try
+            {
+                convScript = convScriptClass.newInstance();
+            }
+            catch (InstantiationException | IllegalAccessException ex)
+            {
+                throw new RuntimeException("Failed to instantiate ConversationScript!", ex);
+            }
+
             convScript.init(this, info);
         }
     }
@@ -57,6 +70,12 @@ public final class Conversation implements JSONString
         if (convScript != null)
         {
             convScript.end(this, info);
+            convScript = null;
+        }
+
+        for (Node node : nodes.values())
+        {
+            node.hasInitiated = false;
         }
     }
 
@@ -103,6 +122,16 @@ public final class Conversation implements JSONString
     public Map<String, Node> getNodes()
     {
         return nodes;
+    }
+
+    public Class<? extends ConversationScript> getConversationScriptClass()
+    {
+        return convScriptClass;
+    }
+
+    public void setConversationScriptClass(Class<? extends ConversationScript> scriptClass)
+    {
+        convScriptClass = scriptClass;
     }
 
     ConversationScript getConversationScript()
@@ -169,9 +198,10 @@ public final class Conversation implements JSONString
 
     public static final class Node implements JSONString
     {
-        private String text;
         private final Set<Response> responses;
-        private final NodeScript nodeScript;
+        private String text;
+        private Class<? extends NodeScript> nodeScriptClass;
+        private transient NodeScript nodeScript;
         private Conversation parentConv;
         private boolean hasInitiated = false;
 
@@ -180,11 +210,12 @@ public final class Conversation implements JSONString
             this(text, responses, null);
         }
 
-        public Node(String text, List<Response> responses, NodeScript script)
+        public Node(String text, List<Response> responses,
+                Class<? extends NodeScript> scriptClass)
         {
             this.text = text;
             this.responses = new LinkedHashSet<>();
-            this.nodeScript = script;
+            this.nodeScriptClass = scriptClass;
 
             for (Response tmp : responses)
             {
@@ -194,8 +225,22 @@ public final class Conversation implements JSONString
 
         void init(DialogInfo info)
         {
-            if (!hasInitiated && nodeScript != null)
+            if (hasInitiated)
             {
+                return;
+            }
+
+            if (nodeScriptClass != null)
+            {
+                try
+                {
+                    nodeScript = nodeScriptClass.newInstance();
+                }
+                catch (InstantiationException | IllegalAccessException ex)
+                {
+                    throw new RuntimeException("Failed to instantiate NodeScript!", ex);
+                }
+
                 nodeScript.init(this, info);
             }
 
@@ -245,6 +290,16 @@ public final class Conversation implements JSONString
         public List<Response> getResponsesCopy()
         {
             return new ArrayList<>(responses);
+        }
+
+        public Class<? extends NodeScript> getNodeScriptClass()
+        {
+            return nodeScriptClass;
+        }
+
+        public void setNodeScriptClass(Class<? extends NodeScript> scriptClass)
+        {
+            nodeScriptClass = scriptClass;
         }
 
         NodeScript getNodeScript()
