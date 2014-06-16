@@ -132,6 +132,7 @@ public final class Conversation implements JSONString
     public void setConversationScriptClass(Class<? extends ConversationScript> scriptClass)
     {
         convScriptClass = scriptClass;
+        convScript = null;
     }
 
     ConversationScript getConversationScript()
@@ -300,6 +301,8 @@ public final class Conversation implements JSONString
         public void setNodeScriptClass(Class<? extends NodeScript> scriptClass)
         {
             nodeScriptClass = scriptClass;
+            nodeScript = null;
+            hasInitiated = false;
         }
 
         NodeScript getNodeScript()
