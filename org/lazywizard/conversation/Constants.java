@@ -5,8 +5,8 @@ class Constants
     static final String MOD_ID = "lw_dialog";
 
     static final String CSV_PATH = "data/conv/conversations.csv";
-    static final String CSV_ROW_ID = "id";
-    static final String CSV_ROW_PATH = "filePath";
+    static final String CSV_COLUMN_ID = "id";
+    static final String CSV_COLUMN_PATH = "filePath";
 
     static final String CONV_STARTING_NODE = "startingNode";
     static final String CONV_NODES = "nodes";

@@ -33,10 +33,10 @@ class JSONParser
             }
         }
 
-        if (conv.getConversationScript() != null)
+        if (conv.getConversationScriptClass() != null)
         {
-            json.put(Constants.CONV_SCRIPT, conv.getConversationScript()
-                    .getClass().getCanonicalName());
+            json.put(Constants.CONV_SCRIPT, conv.getConversationScriptClass()
+                    .getCanonicalName());
         }
 
         json.put(Constants.CONV_NODES, nodes);
@@ -46,23 +46,23 @@ class JSONParser
     static Conversation parseConversation(JSONObject data) throws JSONException
     {
         String scriptPath = data.optString(Constants.CONV_SCRIPT, null);
-        ConversationScript script = null;
+        Class<? extends ConversationScript> scriptClass = null;
         if (scriptPath != null)
         {
             try
             {
-                script = (ConversationScript) Global.getSettings()
-                        .getScriptClassLoader().loadClass(scriptPath).newInstance();
+                scriptClass = (Class<? extends ConversationScript>) Global
+                        .getSettings().getScriptClassLoader().loadClass(scriptPath);
             }
-            catch (ClassNotFoundException | ClassCastException |
-                    IllegalAccessException | InstantiationException ex)
+            catch (ClassNotFoundException | ClassCastException ex)
             {
-                throw new RuntimeException("Failed to create NodeScript: "
+                throw new RuntimeException("Failed to load ConversationScript: "
                         + scriptPath, ex);
             }
         }
 
-        Conversation conv = new Conversation(script);
+        Conversation conv = new Conversation();
+        conv.setConversationScriptClass(scriptClass);
 
         String startingNode = data.getString(Constants.CONV_STARTING_NODE);
         JSONObject nodes = data.getJSONObject(Constants.CONV_NODES);
@@ -132,23 +132,23 @@ class JSONParser
         }
 
         String scriptPath = data.optString(Constants.NODE_SCRIPT, null);
+        Class<? extends NodeScript> scriptClass = null;
         if (scriptPath != null)
         {
             try
             {
-                NodeScript script = (NodeScript) Global.getSettings()
-                        .getScriptClassLoader().loadClass(scriptPath).newInstance();
-                return new Node(text, responses, script);
+                scriptClass = (Class<? extends NodeScript>) Global
+                        .getSettings()
+                        .getScriptClassLoader().loadClass(scriptPath);
             }
-            catch (ClassNotFoundException | ClassCastException |
-                    IllegalAccessException | InstantiationException ex)
+            catch (ClassNotFoundException | ClassCastException ex)
             {
-                throw new RuntimeException("Failed to create NodeScript: "
+                throw new RuntimeException("Failed to load NodeScript: "
                         + scriptPath, ex);
             }
         }
 
-        return new Node(text, responses);
+        return new Node(text, responses, scriptClass);
     }
 
     static JSONObject toJSON(Response response) throws JSONException
