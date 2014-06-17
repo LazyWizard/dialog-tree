@@ -9,18 +9,19 @@ import com.fs.starfarer.api.campaign.SectorEntityToken;
 import com.fs.starfarer.api.campaign.TextPanelAPI;
 import com.fs.starfarer.api.campaign.VisualPanelAPI;
 import com.fs.starfarer.api.characters.FullName;
-import com.fs.starfarer.api.characters.FullName.Gender;
 import com.fs.starfarer.api.combat.BattleCreationContext;
 import com.fs.starfarer.api.combat.EngagementResultAPI;
 import java.awt.Color;
 import java.util.Iterator;
 import java.util.LinkedHashMap;
 import java.util.Map;
+import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import org.lazywizard.conversation.Conversation.Node;
 import org.lazywizard.conversation.Conversation.Response;
 import org.lazywizard.conversation.scripts.OnBattleEndScript;
 
+// TODO: Test keyword w/ regular expressions (not a high priority!)
 class ConversationDialogPlugin implements InteractionDialogPlugin, ConversationDialog
 {
     private final Conversation conv;
@@ -117,11 +118,12 @@ class ConversationDialogPlugin implements InteractionDialogPlugin, ConversationD
         }
     }
 
-    // TODO: Test duplicate handling (unlikely to work since no Pattern.equals())
     @Override
     public void addKeyword(String keyword, String replaceWith)
     {
-        keywords.put(Pattern.compile(keyword, Pattern.LITERAL), replaceWith);
+        removeKeyword(keyword); // Needed due to no Pattern.equals() implementation
+        keywords.put(Pattern.compile(keyword, Pattern.LITERAL),
+                Matcher.quoteReplacement(replaceWith));
     }
 
     @Override
@@ -129,8 +131,7 @@ class ConversationDialogPlugin implements InteractionDialogPlugin, ConversationD
     {
         for (Iterator<Pattern> iter = keywords.keySet().iterator(); iter.hasNext();)
         {
-            Pattern pattern = iter.next();
-            if (keyword.equals(pattern.pattern()))
+            if (keyword.equals(iter.next().pattern()))
             {
                 iter.remove();
             }
@@ -150,12 +151,15 @@ class ConversationDialogPlugin implements InteractionDialogPlugin, ConversationD
         switch (playerName.getGender())
         {
             case MALE:
+                addKeyword("$PLAYERHESHE", "he");
                 addKeyword("$PLAYERHIMHER", "him");
                 break;
             case FEMALE:
+                addKeyword("$PLAYERHESHE", "she");
                 addKeyword("$PLAYERHIMHER", "her");
                 break;
             default:
+                addKeyword("$PLAYERHESHE", "they");
                 addKeyword("$PLAYERHIMHER", "them");
         }
 
@@ -169,15 +173,21 @@ class ConversationDialogPlugin implements InteractionDialogPlugin, ConversationD
             switch (targetName.getGender())
             {
                 case MALE:
-                    addKeyword("$PLAYERHIMHER", "him");
+                    addKeyword("$TARGETHESHE", "he");
+                    addKeyword("$TARGETHIMHER", "him");
                     break;
                 case FEMALE:
-                    addKeyword("$PLAYERHIMHER", "her");
+                    addKeyword("$TARGETHESHE", "she");
+                    addKeyword("$TARGETHIMHER", "her");
                     break;
                 default:
-                    addKeyword("$PLAYERHIMHER", "them");
+                    addKeyword("$TARGETHESHE", "they");
+                    addKeyword("$TARGETHIMHER", "them");
             }
         }
+
+        // DEBUG
+        System.out.println(keywords);
     }
 
     @Override
