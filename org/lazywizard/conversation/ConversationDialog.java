@@ -16,6 +16,12 @@ public interface ConversationDialog
 
     public Conversation getConversation();
 
+    public void addKeyword(String keyword, String replaceWith);
+
+    public void removeKeyword(String keyword);
+
+    public String replaceKeywords(String rawText);
+
     public Node getCurrentNode();
 
     public void goToNode(Node node);
