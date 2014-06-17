@@ -17,11 +17,11 @@ import org.lazywizard.conversation.scripts.ResponseScript;
 import org.lazywizard.conversation.scripts.VisibilityScript;
 
 // TODO: Add Javadoc, more commentary, better logging
-// TODO: Keyword support for node/response text (ex: $PLAYER becomes player name)
+// TODO: Make Response more customizable (currently read-only once created)
+// TODO: Change Response's leadsTo to a Node, set in the Conversation's init()
 // TODO: Add promptText field to Node
 // TODO: Add Selector support
 // TODO: Add color support (tentative, probably adds too much complexity)
-// TODO: Instantiate scripts on init(), null them after conversation ends
 // TODO: This needs some clean-up
 public final class Conversation implements JSONString
 {
@@ -33,11 +33,6 @@ public final class Conversation implements JSONString
     public Conversation()
     {
         this(new HashMap<String, Node>(), null);
-    }
-
-    public Conversation(Map<String, Node> nodes)
-    {
-        this(nodes, null);
     }
 
     public Conversation(Map<String, Node> nodes,
@@ -75,7 +70,7 @@ public final class Conversation implements JSONString
         for (Node node : nodes.values())
         {
             node.nodeScript = null;
-            node.hasInitiated = false;
+            node.isInitiated = false;
         }
     }
 
@@ -204,11 +199,11 @@ public final class Conversation implements JSONString
         private Class<? extends NodeScript> nodeScriptClass;
         private transient NodeScript nodeScript;
         private Conversation parentConv;
-        private boolean hasInitiated = false;
+        private boolean isInitiated = false;
 
-        public Node(String text, List<Response> responses)
+        public Node(String text)
         {
-            this(text, responses, null);
+            this(text, new ArrayList<Response>(), null);
         }
 
         public Node(String text, List<Response> responses,
@@ -226,7 +221,7 @@ public final class Conversation implements JSONString
 
         void init(DialogInfo info)
         {
-            if (hasInitiated)
+            if (isInitiated)
             {
                 return;
             }
@@ -245,7 +240,7 @@ public final class Conversation implements JSONString
                 nodeScript.init(this, info);
             }
 
-            hasInitiated = true;
+            isInitiated = true;
         }
 
         void advance(float amount)
@@ -302,7 +297,7 @@ public final class Conversation implements JSONString
         {
             nodeScriptClass = scriptClass;
             nodeScript = null;
-            hasInitiated = false;
+            isInitiated = false;
         }
 
         NodeScript getNodeScript()
