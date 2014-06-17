@@ -8,12 +8,15 @@ import com.fs.starfarer.api.campaign.OptionPanelAPI;
 import com.fs.starfarer.api.campaign.SectorEntityToken;
 import com.fs.starfarer.api.campaign.TextPanelAPI;
 import com.fs.starfarer.api.campaign.VisualPanelAPI;
-import com.fs.starfarer.api.characters.PersonAPI;
+import com.fs.starfarer.api.characters.FullName;
+import com.fs.starfarer.api.characters.FullName.Gender;
 import com.fs.starfarer.api.combat.BattleCreationContext;
 import com.fs.starfarer.api.combat.EngagementResultAPI;
 import java.awt.Color;
+import java.util.Iterator;
 import java.util.LinkedHashMap;
 import java.util.Map;
+import java.util.regex.Pattern;
 import org.lazywizard.conversation.Conversation.Node;
 import org.lazywizard.conversation.Conversation.Response;
 import org.lazywizard.conversation.scripts.OnBattleEndScript;
@@ -21,8 +24,10 @@ import org.lazywizard.conversation.scripts.OnBattleEndScript;
 class ConversationDialogPlugin implements InteractionDialogPlugin, ConversationDialog
 {
     private final Conversation conv;
+    private final CampaignFleetAPI player;
     private final SectorEntityToken talkingTo;
     private final boolean devMode;
+    private final Map<Pattern, String> keywords;
     private final DialogInfo info;
     private InteractionDialogAPI dialog;
     private TextPanelAPI text;
@@ -37,8 +42,10 @@ class ConversationDialogPlugin implements InteractionDialogPlugin, ConversationD
     {
         this.conv = conv;
         this.talkingTo = talkingTo;
+        player = Global.getSector().getPlayerFleet();
+        keywords = new LinkedHashMap<>();
         devMode = Global.getSettings().isDevMode();
-        info = new DialogInfo(talkingTo, this);
+        info = new DialogInfo(talkingTo, player, this);
     }
 
     @Override
@@ -55,6 +62,7 @@ class ConversationDialogPlugin implements InteractionDialogPlugin, ConversationD
         }
 
         ConversationMaster.setCurrentConversation(conv);
+        generateKeywords();
         conv.init(info);
 
         if (!conv.isValid())
@@ -85,7 +93,7 @@ class ConversationDialogPlugin implements InteractionDialogPlugin, ConversationD
 
         currentNode = node;
         currentNode.init(info);
-        text.addParagraph(node.getText());
+        text.addParagraph(replaceKeywords(node.getText()));
         reloadCurrentNode();
     }
 
@@ -109,21 +117,82 @@ class ConversationDialogPlugin implements InteractionDialogPlugin, ConversationD
         }
     }
 
-    private static String replaceKeywords(String rawText)
+    // TODO: Test duplicate handling (unlikely to work since no Pattern.equals())
+    @Override
+    public void addKeyword(String keyword, String replaceWith)
     {
-        String text = rawText;
-        Map<String, String> keywords = new LinkedHashMap<>();
-        // TODO
-        PersonAPI player = Global.getSector().getPlayerFleet().getCommander();
+        keywords.put(Pattern.compile(keyword, Pattern.LITERAL), replaceWith);
+    }
 
-        keywords.put("$PLAYERFIRSTNAME", player.getName().getFirst());
-        keywords.put("$PLAYERLASTNAME", player.getName().getLast());
-        keywords.put("$PLAYERFULLNAME", player.getName().getFullName());
-        //keywords.put("$PLAYERHIMHER", player.getName().getGender() == male ?;
-
-        for (Map.Entry<String, String> entry : keywords.entrySet())
+    @Override
+    public void removeKeyword(String keyword)
+    {
+        for (Iterator<Pattern> iter = keywords.keySet().iterator(); iter.hasNext();)
         {
-            text = text.replaceAll("\\" + entry.getKey(), entry.getValue());
+            Pattern pattern = iter.next();
+            if (keyword.equals(pattern.pattern()))
+            {
+                iter.remove();
+            }
+        }
+    }
+
+    private void generateKeywords()
+    {
+        FullName playerName = player.getCommander().getName();
+
+        // TODO
+        keywords.clear();
+        addKeyword("$PLAYERFIRSTNAME", playerName.getFirst());
+        addKeyword("$PLAYERLASTNAME", playerName.getLast());
+        addKeyword("$PLAYERFULLNAME", playerName.getFullName());
+
+        switch (playerName.getGender())
+        {
+            case MALE:
+                addKeyword("$PLAYERHIMHER", "him");
+                break;
+            case FEMALE:
+                addKeyword("$PLAYERHIMHER", "her");
+                break;
+            default:
+                addKeyword("$PLAYERHIMHER", "them");
+        }
+
+        if (talkingTo instanceof CampaignFleetAPI)
+        {
+            FullName targetName = ((CampaignFleetAPI) talkingTo).getCommander().getName();
+            addKeyword("$TARGETFIRSTNAME", targetName.getFirst());
+            addKeyword("$TARGETLASTNAME", targetName.getLast());
+            addKeyword("$TARGETFULLNAME", targetName.getFullName());
+
+            switch (targetName.getGender())
+            {
+                case MALE:
+                    addKeyword("$PLAYERHIMHER", "him");
+                    break;
+                case FEMALE:
+                    addKeyword("$PLAYERHIMHER", "her");
+                    break;
+                default:
+                    addKeyword("$PLAYERHIMHER", "them");
+            }
+        }
+    }
+
+    @Override
+    public String replaceKeywords(String text)
+    {
+        // Don't bother with text that doesn't include keywords
+        if (text == null || text.isEmpty() || !text.contains("$"))
+        {
+            return text;
+        }
+
+        // Replace all keywords in the string
+        for (Map.Entry<Pattern, String> entry : keywords.entrySet())
+        {
+            text = entry.getKey().matcher(text).replaceAll(entry.getValue());
         }
 
         return text;
@@ -163,15 +232,16 @@ class ConversationDialogPlugin implements InteractionDialogPlugin, ConversationD
             switch (visibility)
             {
                 case VISIBLE:
-                    options.addOption(response.getText(), response, response.getTooltip());
+                    options.addOption(replaceKeywords(response.getText()),
+                            response, replaceKeywords(response.getTooltip()));
                     return true;
                 case DISABLED:
-                    options.addOption("[DISABLED] " + response.getText(),
-                            response, Color.YELLOW, response.getTooltip());
+                    options.addOption("[DISABLED] " + replaceKeywords(response.getText()),
+                            response, Color.YELLOW, replaceKeywords(response.getTooltip()));
                     return false;
                 case HIDDEN:
-                    options.addOption("[HIDDEN] " + response.getText(),
-                            response, Color.RED, response.getTooltip());
+                    options.addOption("[HIDDEN] " + replaceKeywords(response.getText()),
+                            response, Color.RED, replaceKeywords(response.getTooltip()));
                     return false;
                 default:
                     throw new RuntimeException("Unsupported status: " + visibility.name());
@@ -182,10 +252,12 @@ class ConversationDialogPlugin implements InteractionDialogPlugin, ConversationD
         switch (visibility)
         {
             case VISIBLE:
-                options.addOption(response.getText(), response, response.getTooltip());
+                options.addOption(replaceKeywords(response.getText()),
+                        response, replaceKeywords(response.getTooltip()));
                 return true;
             case DISABLED:
-                options.addOption(response.getText(), response, response.getTooltip());
+                options.addOption(replaceKeywords(response.getText()),
+                        response, replaceKeywords(response.getTooltip()));
                 options.setEnabled(response, false);
                 return false;
             case HIDDEN:
@@ -199,7 +271,7 @@ class ConversationDialogPlugin implements InteractionDialogPlugin, ConversationD
     public void optionSelected(String optionText, Object optionData)
     {
         Response response = (Response) optionData;
-        text.addParagraph(response.getText(), Color.CYAN);
+        text.addParagraph(replaceKeywords(response.getText()), Color.CYAN);
         response.onChosen(info);
         goToNode(conv.getNodes().get(response.getDestination()));
     }

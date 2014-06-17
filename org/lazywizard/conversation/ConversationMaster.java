@@ -125,20 +125,20 @@ public class ConversationMaster
         return new ArrayList<>(conversations.keySet());
     }
 
-    public static boolean hasConversation(String id)
+    public static boolean hasConversation(String convId)
     {
-        return conversations.containsKey(id);
+        return conversations.containsKey(convId);
     }
 
-    // Any changes made to this conversation will affect all new copies of it!
-    public static Conversation getConversationMaster(String id)
+    // Any changes made to this conversation will affect all new copies of it
+    public static Conversation getMasterConversation(String convId)
     {
-        return conversations.get(id);
+        return conversations.get(convId);
     }
 
-    public static Conversation getConversation(String id)
+    public static Conversation getConversation(String convId)
     {
-        return copyConversation(conversations.get(id));
+        return copyConversation(conversations.get(convId));
     }
 
     public static InteractionDialogPlugin createDialogPlugin(Conversation conv,
