@@ -21,7 +21,8 @@ import org.lazywizard.conversation.scripts.VisibilityScript;
 // TODO: Change Response's leadsTo to a Node, set in the Conversation's init()
 // TODO: Add promptText field to Node
 // TODO: Add Selector support
-// TODO: Add color support (tentative, probably adds too much complexity)
+// TODO: Add shortcut support
+// TODO: Add color support (tentative)
 // TODO: This needs some clean-up
 public final class Conversation implements JSONString
 {
@@ -82,36 +83,36 @@ public final class Conversation implements JSONString
         }
     }
 
-    public void addNode(String id, Node node)
+    public void addNode(String nodeId, Node node)
     {
-        if (nodes.containsKey(id))
+        if (nodes.containsKey(nodeId))
         {
-            nodes.put(id, node).setParentConversation(null);
+            nodes.put(nodeId, node).setParentConversation(null);
         }
         else
         {
-            nodes.put(id, node);
+            nodes.put(nodeId, node);
         }
 
         node.setParentConversation(this);
     }
 
-    public void removeNode(String id)
+    public void removeNode(String nodeId)
     {
-        if (nodes.containsKey(id))
+        if (nodes.containsKey(nodeId))
         {
-            nodes.remove(id).setParentConversation(null);
+            nodes.remove(nodeId).setParentConversation(null);
         }
     }
 
-    public boolean hasNode(String id)
+    public boolean hasNode(String nodeId)
     {
-        return nodes.containsKey(id);
+        return nodes.containsKey(nodeId);
     }
 
-    public Node getNode(String id)
+    public Node getNode(String nodeId)
     {
-        return nodes.get(id);
+        return nodes.get(nodeId);
     }
 
     public Map<String, Node> getNodes()
@@ -254,6 +255,23 @@ public final class Conversation implements JSONString
         private void setParentConversation(Conversation parentConv)
         {
             this.parentConv = parentConv;
+        }
+
+        // Only works if this has a parent conversation!
+        public String getNodeId()
+        {
+            if (parentConv != null)
+            {
+                for (Map.Entry<String, Node> entry : parentConv.nodes.entrySet())
+                {
+                    if (entry.getValue() == this)
+                    {
+                        return entry.getKey();
+                    }
+                }
+            }
+
+            return null;
         }
 
         public String getText()
