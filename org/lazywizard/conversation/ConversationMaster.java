@@ -16,14 +16,14 @@ import org.lazywizard.conversation.Conversation.Response;
 
 public class ConversationMaster
 {
-    private static final Map<String, Conversation> conversations = new HashMap<>();
+    private static final Map<String, Conversation> masterConvs = new HashMap<>();
     private static Conversation currentConv = null;
 
     public static void registerConversation(String convId, Conversation conv)
     {
         if (conv == null)
         {
-            conversations.remove(convId);
+            masterConvs.remove(convId);
             return;
         }
 
@@ -34,12 +34,12 @@ public class ConversationMaster
                     + "' is broken or malformed!");
         }
 
-        conversations.put(convId, conv);
+        masterConvs.put(convId, conv);
     }
 
     public static void reloadConversations()
     {
-        conversations.clear();
+        masterConvs.clear();
 
         try
         {
@@ -122,23 +122,23 @@ public class ConversationMaster
 
     public static List<String> getLoadedConversations()
     {
-        return new ArrayList<>(conversations.keySet());
+        return new ArrayList<>(masterConvs.keySet());
     }
 
     public static boolean hasConversation(String convId)
     {
-        return conversations.containsKey(convId);
+        return masterConvs.containsKey(convId);
     }
 
     // Any changes made to this conversation will affect all new copies of it
     public static Conversation getMasterConversation(String convId)
     {
-        return conversations.get(convId);
+        return masterConvs.get(convId);
     }
 
     public static Conversation getConversation(String convId)
     {
-        return copyConversation(conversations.get(convId));
+        return copyConversation(masterConvs.get(convId));
     }
 
     public static InteractionDialogPlugin createDialogPlugin(Conversation conv,
